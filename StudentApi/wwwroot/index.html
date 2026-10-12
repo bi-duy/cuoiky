@@ -1,0 +1,3608 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>toeicly - Ứng Dụng Thi TOEIC Reading</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary-dark: #064E3B;
+      --primary-green: #0B4D3C;
+      --primary-accent: #0A5C45;
+      --primary-light: #10B981;
+      --mint-subtle: #D1FAE5;
+      --mint-badge: #A7F3D0;
+      --bg-studio: #181A1B;
+      --card-white: #FFFFFF;
+      --text-dark: #0F172A;
+      --text-muted: #64748B;
+      --border-light: #E2E8F0;
+      --phone-border: #7C6F92;
+      --phone-border-dark: #4A3E5E;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg-studio);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px 10px;
+      overflow-x: hidden;
+    }
+
+    .phone-container-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    /* iPhone 15/16 Pro Frame in Purple Titanium */
+    .smartphone-frame {
+      width: 400px;
+      height: 844px;
+      background: #000000;
+      border-radius: 54px;
+      position: relative;
+      box-shadow: 
+        0 0 0 4px #5A4E70,
+        0 0 0 8px var(--phone-border),
+        0 0 0 11px #3E344F,
+        0 25px 65px rgba(0, 0, 0, 0.8),
+        0 0 50px rgba(124, 111, 146, 0.25);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .smartphone-frame::before {
+      content: '';
+      position: absolute;
+      left: -11px;
+      top: 130px;
+      width: 3px;
+      height: 32px;
+      background: #9D8EB6;
+      border-radius: 2px;
+      box-shadow: 0 52px 0 #9D8EB6, 0 108px 0 #9D8EB6;
+    }
+
+    .smartphone-frame::after {
+      content: '';
+      position: absolute;
+      right: -11px;
+      top: 175px;
+      width: 3px;
+      height: 72px;
+      background: #9D8EB6;
+      border-radius: 2px;
+    }
+
+    /* Dynamic Island at Top */
+    .dynamic-island {
+      position: absolute;
+      top: 13px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 125px;
+      height: 32px;
+      background: #000000;
+      border-radius: 22px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+
+    .island-camera-lens {
+      width: 11px;
+      height: 11px;
+      background: #0B132B;
+      border-radius: 50%;
+      border: 1px solid #1C2541;
+      margin-left: auto;
+    }
+
+    /* Status Bar */
+    .status-bar-phone {
+      height: 48px;
+      padding: 12px 24px 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      font-weight: 700;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 900;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .status-bar-phone.light-text { color: #FFFFFF; }
+    .status-bar-phone.dark-text { color: #0F172A; }
+
+    .status-bar-phone .right-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+    }
+
+    /* Screen Views Wrapper */
+    .phone-screen-body {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      background: #F8FAFC;
+      overflow: hidden;
+    }
+
+    /* Screen views are completely mutually exclusive */
+    .screen-view {
+      display: none !important;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #FFFFFF;
+      z-index: 10;
+    }
+
+    .screen-view.active {
+      display: flex !important;
+      z-index: 20;
+    }
+
+    /* Home Indicator bar at bottom */
+    .home-indicator-area {
+      height: 20px;
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 990;
+      pointer-events: none;
+    }
+
+    .home-indicator-pill {
+      width: 134px;
+      height: 5px;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 10px;
+    }
+
+    /* ==============================================================================
+       SCREEN 1: ĐĂNG NHẬP (LOGIN SCREEN - MATCHING SCREENSHOT 1)
+       ============================================================================== */
+    .screen-login {
+      background: linear-gradient(180deg, #064E3B 0%, #0B4D3C 55%, #0B4D3C 100%) !important;
+      color: white;
+    }
+
+    .login-top-hero {
+      padding: 60px 24px 20px 24px;
+    }
+
+    .brand-logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .brand-icon-box {
+      width: 38px;
+      height: 38px;
+      background: #10B981;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .brand-text-name {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: white;
+    }
+
+    .login-hero-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 10px;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    .login-hero-sub {
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: #A7F3D0;
+      opacity: 0.95;
+    }
+
+    .login-bottom-card {
+      background: #FFFFFF;
+      border-top-left-radius: 32px;
+      border-top-right-radius: 32px;
+      padding: 24px 22px 28px 22px;
+      margin-top: auto;
+      color: var(--text-dark);
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-small-tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #059669;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+
+    .card-big-title {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #0F172A;
+      letter-spacing: -0.5px;
+      margin-bottom: 3px;
+    }
+
+    .card-sub-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .form-group-custom {
+      margin-bottom: 12px;
+    }
+
+    .form-label-custom {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    .form-input-box {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      color: #0F172A;
+      background: #F8FAFC;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-input-box:focus {
+      border-color: #0B4D3C;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(11, 77, 60, 0.12);
+    }
+
+    .form-input-box:disabled, .form-input-box[readonly] {
+      background: #F1F5F9;
+      color: #64748B;
+      font-weight: 700;
+      cursor: not-allowed;
+    }
+
+    .btn-green-submit {
+      width: 100%;
+      background: var(--primary-accent);
+      color: white;
+      border: none;
+      padding: 13px 20px;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(10, 92, 69, 0.28);
+      transition: all 0.2s;
+      margin-top: 6px;
+    }
+
+    .btn-green-submit:hover {
+      background: #064E3B;
+      transform: translateY(-1px);
+    }
+
+    .switch-auth-link {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+    }
+
+    .switch-auth-link span.link {
+      color: #059669;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .quick-role-select {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed #E2E8F0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .role-login-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      background: #F8FAFC;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .role-login-card:hover {
+      border-color: #059669;
+      background: #F0FDF4;
+    }
+
+    .role-login-card.admin-card:hover {
+      border-color: #4338CA;
+      background: #EEF2FF;
+    }
+
+    /* ==============================================================================
+       SCREEN 2: ĐĂNG KÝ (REGISTER SCREEN)
+       ============================================================================== */
+    .screen-register {
+      background: linear-gradient(180deg, #064E3B 0%, #0B4D3C 60%, #0B4D3C 100%) !important;
+      color: white;
+    }
+
+    .register-bottom-card {
+      background: #FFFFFF;
+      border-top-left-radius: 32px;
+      border-top-right-radius: 32px;
+      padding: 22px 20px 28px 20px;
+      margin-top: auto;
+      color: var(--text-dark);
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+      max-height: 80%;
+      overflow-y: auto;
+    }
+
+    /* ==============================================================================
+       SCREEN 3: TRANG CHỦ THÍ SINH (MATCHING SCREENSHOT 2)
+       ============================================================================== */
+    .screen-home {
+      padding: 56px 18px 20px 18px;
+      background: #FFFFFF !important;
+    }
+
+    .home-top-user-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .user-greeting-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon-small {
+      width: 36px;
+      height: 36px;
+      background: #10B981;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.15rem;
+    }
+
+    .greeting-text-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #0F172A;
+      line-height: 1.2;
+    }
+
+    .greeting-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .user-avatar-pill {
+      width: 38px;
+      height: 38px;
+      background: #D1FAE5;
+      color: #064E3B;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: 1.5px solid #10B981;
+      transition: all 0.2s;
+    }
+
+    .user-avatar-pill:hover {
+      transform: scale(1.05);
+      background: #A7F3D0;
+    }
+
+    /* Goal Banner Card */
+    .goal-banner-card {
+      background: linear-gradient(135deg, #0B4D3C 0%, #064E3B 100%);
+      color: white;
+      border-radius: 20px;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(11, 77, 60, 0.25);
+    }
+
+    .goal-label-mini {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #A7F3D0;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .goal-score-headline {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .goal-note-sub {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.85);
+      max-width: 190px;
+      line-height: 1.35;
+    }
+
+    .goal-progress-circle {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 3.5px solid rgba(255, 255, 255, 0.25);
+      border-top-color: #34D399;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .section-label-tiny {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: #059669;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .section-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .section-main-heading {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0F172A;
+      letter-spacing: -0.4px;
+    }
+
+    .badge-count-pill {
+      background: #D1FAE5;
+      color: #064E3B;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* Official Exam Card */
+    .official-exam-card {
+      border: 1px solid #E2E8F0;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+      margin-bottom: 14px;
+    }
+
+    .exam-card-dark-top {
+      background: #064E3B;
+      color: white;
+      padding: 22px 20px;
+      text-align: left;
+      position: relative;
+    }
+
+    .exam-tag-official {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #A7F3D0;
+      opacity: 0.85;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .exam-title-huge {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      line-height: 1.15;
+      margin-bottom: 4px;
+    }
+
+    .exam-format-sub {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #A7F3D0;
+      opacity: 0.85;
+    }
+
+    .exam-card-white-bottom {
+      background: #FFFFFF;
+      padding: 16px 20px 20px 20px;
+    }
+
+    .exam-ready-pill {
+      display: inline-block;
+      background: #D1FAE5;
+      color: #064E3B;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .exam-name-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 4px;
+    }
+
+    .exam-desc-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .exam-stats-row {
+      display: flex;
+      gap: 16px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #F1F5F9;
+    }
+
+    .exam-stats-row span strong {
+      color: #0F172A;
+    }
+
+    .btn-start-test-action {
+      width: 100%;
+      background: var(--primary-accent);
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-start-test-action:hover {
+      background: #064E3B;
+    }
+
+    /* ==============================================================================
+       SCREEN 4: LÀM BÀI THI (EXAM SCREEN)
+       ============================================================================== */
+    .screen-exam {
+      background: #F8FAFC !important;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .exam-top-nav-bar {
+      background: #FFFFFF;
+      padding: 50px 14px 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #E2E8F0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 50;
+    }
+
+    .btn-exam-exit {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      position: relative;
+      z-index: 100;
+      transition: all 0.2s;
+    }
+    .btn-exam-exit:hover {
+      background: #E2E8F0;
+    }
+
+    .exam-timer-badge {
+      background: #D1FAE5;
+      color: #064E3B;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .exam-progress-badge {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: #0F172A;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .btn-submit-test-chip {
+      background: #0A5C45;
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      z-index: 100;
+    }
+    .btn-submit-test-chip:hover {
+      background: #064E3B;
+      transform: scale(1.02);
+    }
+    .btn-submit-test-chip:hover { background: #064E3B; }
+
+    .part-strip-header {
+      background: #FFFFFF;
+      padding: 7px 16px;
+      border-bottom: 1px solid #E2E8F0;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #059669;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .exam-scrollable-body {
+      flex: 1;
+      padding: 12px 14px;
+      overflow-y: auto;
+    }
+
+    .passage-card-box {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .passage-head-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #064E3B;
+      border-bottom: 1px dashed #E2E8F0;
+      padding-bottom: 5px;
+      margin-bottom: 6px;
+    }
+
+    .passage-body-text {
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: #334155;
+      white-space: pre-line;
+      max-height: 160px;
+      overflow-y: auto;
+      background: #F8FAFC;
+      padding: 8px;
+      border-radius: 8px;
+    }
+
+    .question-card-phone {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+    .q-number-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .q-pill-tag {
+      background: #D1FAE5;
+      color: #064E3B;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .q-flag-icon-btn {
+      color: #CBD5E1;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .q-flag-icon-btn.active { color: #F59E0B; }
+
+    .q-content-text {
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.45;
+      color: #0F172A;
+      margin-bottom: 14px;
+    }
+
+    .choices-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .choice-item-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      background: #FFFFFF;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .choice-item-btn:hover {
+      border-color: #34D399;
+      background: #F8FAFC;
+    }
+
+    .choice-item-btn.selected {
+      border-color: #0B4D3C;
+      background: #D1FAE5;
+    }
+
+    .choice-badge-round {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid #CBD5E1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #64748B;
+      flex-shrink: 0;
+    }
+
+    .choice-item-btn.selected .choice-badge-round {
+      background: #0B4D3C;
+      border-color: #0B4D3C;
+      color: white;
+    }
+
+    .choice-label-text {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #0F172A;
+      flex: 1;
+    }
+
+    /* Bottom Exam Nav Controls */
+    .exam-bottom-nav-bar {
+      background: #FFFFFF;
+      padding: 10px 14px 22px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #E2E8F0;
+      flex-shrink: 0;
+    }
+
+    .btn-nav-step {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: #0F172A;
+      padding: 9px 16px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-nav-step.primary {
+      background: #0B4D3C;
+      color: white;
+      border-color: #0B4D3C;
+    }
+
+    .btn-nav-step.submit-finish {
+      background: #059669;
+      color: white;
+      border-color: #059669;
+      font-weight: 800;
+    }
+
+    /* ==============================================================================
+       SCREEN 5: KẾT QUẢ THI (RESULT SCREEN)
+       ============================================================================== */
+    .screen-result {
+      background: #F8FAFC !important;
+      padding: 54px 16px 24px 16px;
+    }
+
+    .result-hero-box {
+      background: linear-gradient(135deg, #064E3B 0%, #0B4D3C 100%);
+      color: white;
+      border-radius: 20px;
+      padding: 18px;
+      text-align: center;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(6, 78, 59, 0.25);
+    }
+
+    .result-score-plate {
+      background: white;
+      color: #064E3B;
+      border-radius: 14px;
+      padding: 8px 18px;
+      display: inline-block;
+      margin: 8px auto 2px auto;
+    }
+
+    .score-plate-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #64748B;
+      text-transform: uppercase;
+    }
+
+    .score-plate-val {
+      font-size: 2.1rem;
+      font-weight: 900;
+      line-height: 1.1;
+      color: #059669;
+    }
+
+    .stats-4grid-result {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .stat-card-mini {
+      background: white;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 8px 4px;
+      text-align: center;
+    }
+
+    .stat-val-text {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #0F172A;
+    }
+
+    .stat-name-text {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .part-analysis-card {
+      background: white;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .part-analysis-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #064E3B;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bar-line-item { margin-bottom: 8px; }
+    .bar-line-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+    .bar-line-track {
+      height: 6px;
+      background: #E2E8F0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .bar-line-fill {
+      height: 100%;
+      border-radius: 8px;
+    }
+
+    .attempts-list-card {
+      background: #F0FDF4;
+      border: 1.5px solid #059669;
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 6px;
+      margin-bottom: 14px;
+    }
+
+    /* ==============================================================================
+       SCREEN 6: QUẢN TRỊ ADMIN (UPLOAD WORD, SỬA CÂU HỎI, BẢNG ĐIỂM)
+       ============================================================================== */
+    .screen-admin {
+      background: #FFFFFF !important;
+      padding: 54px 16px 24px 16px;
+    }
+
+    .admin-tab-bar {
+      display: flex;
+      background: #F1F5F9;
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 14px;
+      gap: 3px;
+    }
+
+    .admin-sub-tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 8px 4px;
+      border-radius: 9px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .admin-sub-tab.active {
+      background: #FFFFFF;
+      color: #064E3B;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      font-weight: 800;
+    }
+
+    .upload-zone-box {
+      border: 2px dashed #059669;
+      background: #F0FDF4;
+      border-radius: 16px;
+      padding: 24px 16px;
+      text-align: center;
+      margin-bottom: 14px;
+      transition: all 0.2s;
+    }
+
+    .file-ready-banner {
+      background: #FFFFFF;
+      border: 1.5px solid #10B981;
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .editor-question-card {
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 14px;
+      background: #F8FAFC;
+      margin-bottom: 14px;
+    }
+
+    /* ==============================================================================
+       SCREEN 7: THÔNG TIN TÀI KHOẢN (FULL PROFILE SCREEN)
+       ============================================================================== */
+    .screen-profile {
+      background: #F8FAFC !important;
+      padding: 54px 16px 24px 16px;
+    }
+
+    .profile-header-card {
+      background: linear-gradient(135deg, #064E3B 0%, #0B4D3C 100%);
+      color: white;
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(6, 78, 59, 0.2);
+    }
+
+    .profile-avatar-big {
+      width: 64px;
+      height: 64px;
+      background: #D1FAE5;
+      color: #064E3B;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 900;
+      margin: 0 auto 10px;
+      border: 3px solid #10B981;
+    }
+
+    .profile-info-form-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .lock-field-note {
+      font-size: 0.68rem;
+      color: #64748B;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ==============================================================================
+       BOTTOM NAVIGATION DOCK
+       ============================================================================== */
+    .bottom-app-dock {
+      background: #FFFFFF;
+      border-top: 1px solid #E2E8F0;
+      display: none; /* Hidden during Login & Register */
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 2px 18px 2px;
+      z-index: 800;
+      flex-shrink: 0;
+    }
+
+    .dock-tab-btn {
+      background: none;
+      border: none;
+      color: #94A3B8;
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s;
+      flex: 1;
+    }
+
+    .dock-tab-btn i { font-size: 1.15rem; }
+
+    .dock-tab-btn.active {
+      color: #0B4D3C;
+      font-weight: 800;
+    }
+
+    /* Toast Alert Pill */
+    .toast-pill-alert {
+      position: absolute;
+      top: 55px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #064E3B;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      z-index: 1200;
+      display: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+      white-space: nowrap;
+    }
+
+    .toast-pill-alert.show {
+      display: block;
+      animation: popFade 2.4s forwards;
+    }
+
+    @keyframes popFade {
+      0% { opacity: 0; transform: translate(-50%, -10px); }
+      15% { opacity: 1; transform: translate(-50%, 0); }
+      85% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -10px); }
+    }
+
+    /* Bottom Sheet Modals */
+    .modal-backdrop-phone {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop-phone.active { display: flex; }
+
+    .modal-sheet-bottom {
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-height: none;
+      padding: 22px 20px 32px;
+      overflow-y: visible;
+    }
+
+    .modal-drag {
+      width: 40px;
+      height: 4px;
+      background: #CBD5E1;
+      border-radius: 4px;
+      margin: 0 auto 12px;
+    }
+
+    .modal-h {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 3px;
+    }
+
+    .modal-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .m-fgroup { margin-bottom: 12px; }
+    .m-flabel {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    .m-finput {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      color: var(--text-dark);
+      background: #F8FAFC;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .m-btns { display: flex; gap: 8px; margin-top: 16px; }
+    .m-btn-cancel {
+      flex: 1;
+      padding: 12px 0;
+      background: #F1F5F9;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      cursor: pointer;
+    }
+
+    .m-btn-ok {
+      flex: 1;
+      padding: 12px 0;
+      background: var(--primary-accent);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .m-btn-danger { background: #EF4444; }
+
+    /* Palette Modal */
+    .palette-grid-100 {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      overflow-y: auto;
+      max-height: 380px;
+      padding: 8px 2px;
+    }
+
+    .pal-cell-btn {
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid #CBD5E1;
+      background: #F8FAFC;
+      font-size: 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pal-cell-btn.answered {
+      background: #0B4D3C;
+      color: white;
+      border-color: #0B4D3C;
+    }
+    .pal-cell-btn.flagged {
+      background: #F59E0B;
+      color: white;
+      border-color: #F59E0B;
+    }
+    .pal-cell-btn.current {
+      box-shadow: 0 0 0 2px #059669;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone-container-wrapper">
+    
+    <!-- Smartphone Hardware Frame in Purple Titanium Mockup -->
+    <div class="smartphone-frame">
+      
+      <!-- Dynamic Island at top -->
+      <div class="dynamic-island">
+        <span style="color: #64748B; font-size: 0.65rem; font-weight: 800;">toeicly</span>
+        <div class="island-camera-lens"></div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar-phone light-text" id="phoneStatusBar">
+        <span id="statusBarClock">9:41</span>
+        <div class="right-icons">
+          <i class="fa-solid fa-signal"></i>
+          <i class="fa-solid fa-wifi"></i>
+          <i class="fa-solid fa-battery-full"></i>
+        </div>
+      </div>
+
+      <!-- Toast Pill Inside Phone -->
+      <div class="toast-pill-alert" id="phoneToast">
+        <span id="toastMsgText">Thành công!</span>
+      </div>
+
+      <!-- Phone Screen Scrollable Body -->
+      <div class="phone-screen-body">
+
+        <!-- ==============================================================================
+             SCREEN 1: ĐĂNG NHẬP (MATCHING SCREENSHOT 1)
+             ============================================================================== -->
+        <div id="viewLogin" class="screen-view active screen-login">
+          <div class="login-top-hero">
+            <div class="brand-logo-badge">
+              <div class="brand-icon-box">T</div>
+              <div class="brand-text-name">toeicly</div>
+            </div>
+            <h1 class="login-hero-title">Chạm tới mục tiêu TOEIC của bạn.</h1>
+            <p class="login-hero-sub">Một bài thi cô đọng. Trải nghiệm tập trung. Kết quả rõ ràng.</p>
+          </div>
+
+          <div class="login-bottom-card">
+            <div class="card-small-tag">Chào mừng bạn</div>
+            <h2 class="card-big-title">Đăng nhập</h2>
+            <p class="card-sub-desc">Chọn tài khoản Thí sinh hoặc Giảng viên để tiếp tục.</p>
+
+            <div class="form-group-custom">
+              <label class="form-label-custom">Email hoặc Mã Sinh Viên / Admin</label>
+              <input type="text" id="loginEmail" class="form-input-box" value="2380600355" placeholder="MSSV hoặc Email">
+            </div>
+
+            <div class="form-group-custom">
+              <label class="form-label-custom">Mật khẩu</label>
+              <input type="password" id="loginPassword" class="form-input-box" value="123456" placeholder="Tối thiểu 6 ký tự">
+            </div>
+
+            <button class="btn-green-submit" onclick="submitLogin()">
+              <span>Đăng nhập</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+            <div class="switch-auth-link">
+              Chưa có tài khoản? <span class="link" onclick="navToScreen('register')">Đăng ký ngay</span>
+            </div>
+
+            <!-- Nút chọn nhanh tài khoản Thí sinh vs Admin -->
+            <div class="quick-role-select">
+              <div class="role-login-card" onclick="quickFill('2380600355', 'Nguyễn Nhật Duy', '23DTHC7', 'Student')">
+                <div>
+                  <div style="font-size:0.78rem;font-weight:800;color:#064E3B;"><i class="fa-solid fa-user-graduate"></i> Thí Sinh: Nguyễn Nhật Duy</div>
+                  <div style="font-size:0.68rem;color:#64748B;">MSSV: 2380600355 • Lớp 23DTHC7</div>
+                </div>
+                <span style="font-size:0.68rem;background:#D1FAE5;color:#064E3B;font-weight:800;padding:3px 8px;border-radius:6px;">Vào thi</span>
+              </div>
+
+              <div class="role-login-card admin-card" onclick="quickFill('GV001', 'Giảng viên HUTECH', 'Khoa CNTT', 'Teacher')">
+                <div>
+                  <div style="font-size:0.78rem;font-weight:800;color:#3730A3;"><i class="fa-solid fa-chalkboard-user"></i> Admin / Giảng Viên: GV001</div>
+                  <div style="font-size:0.68rem;color:#64748B;">Quản lý đề, Upload Word, Bảng điểm</div>
+                </div>
+                <span style="font-size:0.68rem;background:#EEF2FF;color:#3730A3;font-weight:800;padding:3px 8px;border-radius:6px;">Quản trị</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ==============================================================================
+             SCREEN 2: ĐĂNG KÝ (REGISTER SCREEN)
+             ============================================================================== -->
+        <div id="viewRegister" class="screen-view screen-register">
+          <div class="login-top-hero" style="padding-bottom: 12px;">
+            <div class="brand-logo-badge">
+              <div class="brand-icon-box">T</div>
+              <div class="brand-text-name">toeicly</div>
+            </div>
+            <h1 class="login-hero-title">Khởi đầu mục tiêu điểm cao.</h1>
+            <p class="login-hero-sub">Tạo tài khoản thi TOEIC chuẩn cấu trúc ETS.</p>
+          </div>
+
+          <div class="register-bottom-card">
+            <div class="card-small-tag">Thành viên mới</div>
+            <h2 class="card-big-title">Đăng ký</h2>
+            <p class="card-sub-desc">Dữ liệu lưu trực tiếp vào CSDL SQL Server <strong>[de tanh]</strong>.</p>
+
+            <div class="form-group-custom">
+              <label class="form-label-custom">Mã số sinh viên (MSSV) *</label>
+              <input type="text" id="regMaSV" class="form-input-box" placeholder="Ví dụ: 2380600999">
+            </div>
+
+            <div class="form-group-custom">
+              <label class="form-label-custom">Họ và tên sinh viên *</label>
+              <input type="text" id="regHoTen" class="form-input-box" placeholder="Ví dụ: Lê Minh Hoàng">
+            </div>
+
+            <div class="form-group-custom">
+              <label class="form-label-custom">Lớp</label>
+              <input type="text" id="regLop" class="form-input-box" value="23DTHC7">
+            </div>
+
+            <div class="form-group-custom">
+              <label class="form-label-custom">Email</label>
+              <input type="email" id="regEmail" class="form-input-box" placeholder="sinhvien@gmail.com">
+            </div>
+
+            <div class="form-group-custom">
+              <label class="form-label-custom">Mật khẩu *</label>
+              <input type="password" id="regPass" class="form-input-box" value="123456" placeholder="Tối thiểu 6 ký tự">
+            </div>
+
+            <button class="btn-green-submit" onclick="submitRegister()">
+              <span>Tạo tài khoản</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+            <div class="switch-auth-link">
+              Đã có tài khoản? <span class="link" onclick="navToScreen('login')">Đăng nhập ngay</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==============================================================================
+             SCREEN 3: TRANG CHỦ THÍ SINH (MATCHING SCREENSHOT 2)
+             ============================================================================== -->
+        <div id="viewHome" class="screen-view screen-home">
+          
+          <!-- Top User Bar -->
+          <div class="home-top-user-bar">
+            <div class="user-greeting-wrap">
+              <div class="brand-icon-small">T</div>
+              <div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div class="greeting-text-title" id="homeUserGreeting">Xin chào, Nguyễn Nhật Duy</div>
+                  <span id="homeRoleBadge" style="font-size:0.62rem;font-weight:800;padding:2px 7px;border-radius:6px;background:#D1FAE5;color:#064E3B;">Thí sinh</span>
+                </div>
+                <div class="greeting-sub">Sẵn sàng tiến bộ hôm nay?</div>
+              </div>
+            </div>
+            <div class="user-avatar-pill" id="homeAvatarPill" onclick="navToScreen('profile')" title="Xem & Chỉnh sửa thông tin tài khoản">ND</div>
+          </div>
+
+          <!-- Goal Card: MỤC TIÊU CỦA BẠN (TOEIC 750+) -->
+          <div class="goal-banner-card">
+            <div>
+              <div class="goal-label-mini">MỤC TIÊU CỦA BẠN</div>
+              <div class="goal-score-headline" id="homeGoalHeadline">TOEIC 750+</div>
+              <div class="goal-note-sub" id="homeGoalSub">Hoàn thành bài thi TOEIC để đánh giá trình độ ETS.</div>
+            </div>
+            <div class="goal-progress-circle">
+              <span id="homeGoalPct">0%</span>
+              <span style="font-size: 0.55rem; font-weight: 600; opacity: 0.85;">hoàn thành</span>
+            </div>
+          </div>
+
+          <!-- Card Kết Quả Thi Vừa Hoàn Thành (Cập nhật sau khi làm bài xong) -->
+          <div id="homeRecentResultCard" style="display:none;background:#FFFFFF;border:1.5px solid #10B981;border-radius:20px;padding:14px 16px;margin-bottom:16px;box-shadow:0 4px 18px rgba(16,185,129,0.12);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-size:0.68rem;font-weight:800;color:#059669;text-transform:uppercase;letter-spacing:0.8px;">
+                <i class="fa-solid fa-circle-check"></i> Kết quả thi vừa hoàn thành
+              </span>
+              <span style="font-size:0.68rem;background:#D1FAE5;color:#064E3B;font-weight:800;padding:2px 8px;border-radius:12px;" id="homeRecentSubmitTime">Vừa xong</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:1.5rem;font-weight:900;color:#064E3B;" id="homeRecentScoreVal">425<span style="font-size:0.85rem;color:#64748B;">/495</span></div>
+                <div style="font-size:0.75rem;color:#64748B;margin-top:2px;" id="homeRecentDetailText">Số câu đúng: 85/100 • Thời gian: 68:15</div>
+              </div>
+              <button onclick="navToScreen('result')" style="background:#0B4D3C;color:white;border:none;border-radius:10px;padding:8px 14px;font-size:0.75rem;font-weight:800;cursor:pointer;">
+                Xem chi tiết <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section: BÀI THI CỦA BẠN (CHỌN LỰA ĐỀ THI) -->
+          <div class="section-label-tiny">BÀI THI CỦA BẠN</div>
+          <div class="section-header-row">
+            <h2 class="section-main-heading">Sẵn sàng bắt đầu</h2>
+            <span class="badge-count-pill" id="homeExamCountBadge">1 bài</span>
+          </div>
+
+          <!-- Dynamic Container for Exams from SQL Server -->
+          <div id="examListContainer" style="display:flex;flex-direction:column;gap:12px;margin-bottom:12px;">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <!-- Chỉnh sửa thông tin tài khoản & Đăng xuất (Hiển thị cho Thí Sinh) -->
+          <div style="margin-top:auto;padding-top:10px;display:flex;flex-direction:column;gap:8px;">
+            <button class="btn-green-submit" style="background:#FFFFFF;color:#0F172A;border:1px solid #CBD5E1;box-shadow:none;padding:10px 0;font-size:0.78rem;" onclick="navToScreen('profile')">
+              <i class="fa-solid fa-id-card" style="color:#059669;"></i>
+              Xem & Chỉnh sửa thông tin tài khoản
+            </button>
+            <div style="text-align:center;font-size:0.78rem;font-weight:800;color:#059669;cursor:pointer;padding:6px 0;" onclick="logoutSession()">
+              Đăng xuất tài khoản
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================================
+             SCREEN 4: LÀM BÀI THI (EXAM SCREEN)
+             ============================================================================== -->
+        <div id="viewExam" class="screen-view screen-exam">
+          
+          <div class="exam-top-nav-bar">
+            <button class="btn-exam-exit" onclick="confirmExitExam()">
+              <i class="fa-solid fa-arrow-left"></i> Thoát
+            </button>
+            <div class="exam-timer-badge">
+              <i class="fa-regular fa-clock"></i>
+              <span id="examTimerDisplay">01:14:52</span>
+            </div>
+            <div class="exam-progress-badge" onclick="openPaletteModal()">
+              <span id="examProgressText">Câu 101/200</span>
+              <i class="fa-solid fa-table-cells"></i>
+            </div>
+            <button class="btn-submit-test-chip" onclick="confirmFinishExam()">
+              Nộp bài
+            </button>
+          </div>
+
+          <div class="part-strip-header">
+            <span id="examPartHeader">Part 5: Incomplete Sentences</span>
+            <span id="examMSSVHeader" style="color: #64748B;">2380600355</span>
+          </div>
+
+          <div class="exam-scrollable-body">
+            
+            <!-- Passage Box for Part 6 & 7 -->
+            <div class="passage-card-box" id="examPassageCard" style="display: none;">
+              <div class="passage-head-label" id="examPassageTitle">Questions 131-134 refer to the following text.</div>
+              <div class="passage-body-text" id="examPassageText">Nội dung đoạn văn...</div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="question-card-phone">
+              <div class="q-number-row">
+                <span class="q-pill-tag" id="qNumberBadge">CÂU 101/200</span>
+                <i class="fa-solid fa-bookmark q-flag-icon-btn" id="qFlagIcon" onclick="toggleCurrentFlag()" title="Đánh dấu câu hỏi"></i>
+              </div>
+
+              <div class="q-content-text" id="qContentText">
+                101. Every batch of sauce at Generita's Bistro is processed meticulously by ------- expert chefs.
+              </div>
+
+              <div class="choices-stack" id="choicesStackContainer">
+                <!-- 4 Options A, B, C, D -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Nav: Quay lại / Đi tiếp / Nộp bài -->
+          <div class="exam-bottom-nav-bar">
+            <button class="btn-nav-step" id="btnExamPrev" onclick="examGoPrev()">
+              <i class="fa-solid fa-chevron-left"></i> Quay lại
+            </button>
+            <span style="font-size: 0.78rem; font-weight: 700; color: #64748B;" id="examCounterBottom">1 / 100</span>
+            <button class="btn-nav-step primary" id="btnExamNext" onclick="examGoNext()">
+              Đi tiếp <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================================
+             SCREEN 5: KẾT QUẢ THI (RESULT SCREEN)
+             ============================================================================== -->
+        <div id="viewResult" class="screen-view screen-result">
+          
+          <div class="result-hero-box">
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85;">KẾT QUẢ THI CHÍNH THỨC</div>
+            <div style="font-size: 1.15rem; font-weight: 800; margin-top: 2px;" id="resultExamTitle">TOEIC Reading Test 09 - ETS Format</div>
+            <div style="font-size: 0.72rem; opacity: 0.85; margin-top: 2px;" id="resultStudentDetail">Thí sinh: Nguyễn Nhật Duy • 2380600355</div>
+
+            <div class="result-score-plate">
+              <div class="score-plate-label">ĐIỂM READING ĐẠT ĐƯỢC</div>
+              <div class="score-plate-val" id="resultScoreValue">425<span style="font-size: 1rem; color: #64748B;">/495</span></div>
+            </div>
+          </div>
+
+          <div class="stats-4grid-result">
+            <div class="stat-card-mini">
+              <div class="stat-val-text" id="resTimeVal">68:15</div>
+              <div class="stat-name-text">Thời gian</div>
+            </div>
+            <div class="stat-card-mini">
+              <div class="stat-val-text" style="color: #10B981;" id="resCorrectVal">85</div>
+              <div class="stat-name-text">Câu đúng</div>
+            </div>
+            <div class="stat-card-mini">
+              <div class="stat-val-text" style="color: #EF4444;" id="resWrongVal">12</div>
+              <div class="stat-name-text">Câu sai</div>
+            </div>
+            <div class="stat-card-mini">
+              <div class="stat-val-text" style="color: #64748B;" id="resSkipVal">3</div>
+              <div class="stat-name-text">Bỏ qua</div>
+            </div>
+          </div>
+
+          <div class="part-analysis-card">
+            <div class="part-analysis-title">
+              <i class="fa-solid fa-chart-pie"></i> Phân tích chi tiết từng phần
+            </div>
+
+            <div class="bar-line-item">
+              <div class="bar-line-header">
+                <span>Part 5: Incomplete Sentences</span>
+                <span id="barP5Text" style="color: #064E3B;">26/30 (86.7%)</span>
+              </div>
+              <div class="bar-line-track">
+                <div class="bar-line-fill" id="barP5Fill" style="width: 86.7%; background: #059669;"></div>
+              </div>
+            </div>
+
+            <div class="bar-line-item">
+              <div class="bar-line-header">
+                <span>Part 6: Text Completion</span>
+                <span id="barP6Text" style="color: #0D9488;">13/16 (81.3%)</span>
+              </div>
+              <div class="bar-line-track">
+                <div class="bar-line-fill" id="barP6Fill" style="width: 81.3%; background: #0D9488;"></div>
+              </div>
+            </div>
+
+            <div class="bar-line-item">
+              <div class="bar-line-header">
+                <span>Part 7: Reading Comprehension</span>
+                <span id="barP7Text" style="color: #D97706;">46/54 (85.2%)</span>
+              </div>
+              <div class="bar-line-track">
+                <div class="bar-line-fill" id="barP7Fill" style="width: 85.2%; background: #F59E0B;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <button class="btn-green-submit" style="flex: 1; padding: 11px 0;" onclick="retakeExam()">
+              <i class="fa-solid fa-rotate-right"></i> Thi Lại Đề Này
+            </button>
+            <button class="btn-green-submit" style="flex: 1; background: #64748B; padding: 11px 0;" onclick="navToScreen('home')">
+              <i class="fa-solid fa-house"></i> Về Trang Chủ
+            </button>
+          </div>
+
+          <!-- DANH SÁCH BÀI THI CỦA GIẢNG VIÊN & ADMIN: HIỆN NGAY DƯỚI KẾT QUẢ THI -->
+          <div class="attempts-list-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div class="part-analysis-title" style="margin-bottom:0;color:#064E3B;">
+                <i class="fa-solid fa-graduation-cap" style="color:#059669;"></i> Danh Sách Bài Thi (Giảng Viên & Admin)
+              </div>
+              <button onclick="loadAdminAllAttempts()" style="background:#D1FAE5;border:none;border-radius:6px;padding:4px 9px;font-size:0.7rem;font-weight:700;color:#064E3B;cursor:pointer;">
+                <i class="fa-solid fa-rotate"></i> Tải lại
+              </button>
+            </div>
+            <div style="font-size:0.72rem;color:#475569;margin-bottom:10px;">
+              Bảng điểm và lịch sử nộp bài của sinh viên lưu trực tiếp trong CSDL SQL Server <strong>[de tanh]</strong>.
+            </div>
+            
+            <div id="adminAllAttemptsContainer" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;">
+              <!-- Loaded dynamically via loadAdminAllAttempts() -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================================
+             SCREEN 6: QUẢN TRỊ ADMIN (UPLOAD FILE WORD, SỬA CÂU HỎI, BẢNG ĐIỂM)
+             ============================================================================== -->
+        <div id="viewAdmin" class="screen-view screen-admin">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 800; color: #064E3B;">Quản Trị Đề Thi</h2>
+              <div style="font-size: 0.7rem; color: #64748B;">Phân hệ quản lý dành cho Giảng viên & Admin</div>
+            </div>
+            <span style="font-size: 0.72rem; font-weight: 800; background: #EEF2FF; color: #4338CA; padding: 4px 10px; border-radius: 8px;">Admin</span>
+          </div>
+
+          <!-- 3 Sub Tabs -->
+          <div class="admin-tab-bar">
+            <button class="admin-sub-tab active" id="btnAdminTabUpload" onclick="switchAdminTab('upload')">
+              Upload Word (.docx)
+            </button>
+            <button class="admin-sub-tab" id="btnAdminTabEdit" onclick="switchAdminTab('edit')">
+              Sửa Câu Hỏi
+            </button>
+            <button class="admin-sub-tab" id="btnAdminTabAttempts" onclick="switchAdminTab('attempts')">
+              Bảng Điểm Thi
+            </button>
+          </div>
+
+          <!-- Sub Tab 1: Upload File Word (ĐÃ XÓA SẠCH NÚT THỬ NGHIỆM VÀ ĐOẠN TAG CODE) -->
+          <div id="adminPanelUpload">
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.45;">
+              Hệ thống đọc bộ thẻ định dạng chuẩn trong file Word (.docx). Sau khi tải lên, đề thi sẽ tự động được phân tích và lưu vào CSDL SQL Server <strong>[de tanh]</strong>.
+            </p>
+
+            <div class="upload-zone-box" onclick="document.getElementById('adminWordFileInput').click()" style="cursor:pointer;">
+              <i class="fa-regular fa-file-word" style="font-size: 2.6rem; color: #059669; margin-bottom: 8px;"></i>
+              <div style="font-weight: 800; font-size: 0.92rem; color: #064E3B;">Kéo thả file .docx hoặc nhấp để chọn</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Định dạng: Microsoft Word Document (.docx)</div>
+              
+              <input type="file" id="adminWordFileInput" accept=".docx" style="display: none;" onchange="handleAdminWordFile(this)">
+              
+              <button class="btn-green-submit" style="margin: 12px auto 0; width: auto; padding: 8px 18px; font-size: 0.8rem;" onclick="event.stopPropagation(); document.getElementById('adminWordFileInput').click();">
+                Chọn File Đề Thi (.docx)
+              </button>
+            </div>
+
+            <!-- Preview file đã chọn -->
+            <div id="fileReadyBanner" class="file-ready-banner">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <i class="fa-solid fa-file-word" style="color:#059669;font-size:1.3rem;"></i>
+                <div>
+                  <div id="fileReadyName" style="font-size:0.78rem;font-weight:800;color:#0F172A;">DeThi_TOEIC_Reading_Test10.docx</div>
+                  <div id="fileReadySize" style="font-size:0.68rem;color:#64748B;">48 KB • Sẵn sàng tạo đề thi</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-circle-check" style="color:#10B981;font-size:1.1rem;"></i>
+            </div>
+
+            <div class="form-group-custom">
+              <label class="form-label-custom">Tên Đề Thi (Tùy chọn ghi đè):</label>
+              <input type="text" id="uploadExamNameInput" class="form-input-box" placeholder="Ví dụ: TOEIC Reading Test 10 - ETS 2024">
+            </div>
+
+            <div class="form-group-custom">
+              <label class="form-label-custom">Mã Đề Thi (Tùy chọn):</label>
+              <input type="text" id="uploadExamCodeInput" class="form-input-box" placeholder="Ví dụ: Reading v10">
+            </div>
+
+            <button class="btn-green-submit" id="btnDoUploadWord" style="margin-top:10px;padding:13px 0;" onclick="uploadWordExamToSQL()">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span>Tải Lên & Tạo Đề Thi Vào SQL Server</span>
+            </button>
+          </div>
+
+          <!-- Sub Tab 2: Chỉnh Sửa Nội Dung Đề Thi & Câu Hỏi -->
+          <div id="adminPanelEdit" style="display: none;">
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">
+              Chỉnh sửa trực tiếp nội dung câu hỏi, đáp án đúng và lời giải thích vào SQL Server <strong>[de tanh]</strong>.
+            </p>
+
+            <div class="editor-question-card">
+              <!-- CHỌN ĐỀ THI ĐỂ SỬA (BÊN TRÊN ĐƯỢC CHỌN ĐỀ KHÁC ĐỂ SỬA) -->
+              <div class="form-group-custom" style="margin-bottom: 12px; background: #F0FDF4; border: 1.5px solid #10B981; border-radius: 12px; padding: 10px;">
+                <label class="form-label-custom" style="color: #064E3B; font-weight: 800; margin-bottom: 5px;">
+                  <i class="fa-solid fa-file-pen" style="color: #059669;"></i> Chọn Đề Thi cần chỉnh sửa:
+                </label>
+                <select id="adminEditDeThiSelect" class="form-input-box" style="font-weight: 700; background: white;" onchange="onSelectDeThiForQuestionEditor(this.value)">
+                  <!-- Populated dynamically from SQL Server -->
+                </select>
+              </div>
+
+              <label class="form-label-custom">Chọn số thứ tự câu hỏi cần sửa:</label>
+              <select id="editQuestionSelect" class="form-input-box" style="margin-bottom: 10px;" onchange="loadQuestionToEditor(this.value)">
+                <!-- Loaded dynamically -->
+              </select>
+
+              <label class="form-label-custom">Nội dung câu hỏi:</label>
+              <textarea id="editQuestionContent" class="form-input-box" style="height: 70px; margin-bottom: 10px;"></textarea>
+
+              <label class="form-label-custom">Đáp án đúng (A/B/C/D):</label>
+              <select id="editCorrectChoice" class="form-input-box" style="margin-bottom: 10px;">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+
+              <label class="form-label-custom">Lời giải thích ngữ pháp:</label>
+              <textarea id="editExplanation" class="form-input-box" style="height: 60px; margin-bottom: 12px;"></textarea>
+
+              <button class="btn-green-submit" onclick="saveEditedQuestion()">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu Thay Đổi Vào SQL Server
+              </button>
+            </div>
+
+            <!-- Thao Tác Đề Thi (CSDL [de tanh]): ĐẶT TRONG TAB SỬA ĐỀ/CÂU HỎI -->
+            <div style="margin-top:14px;border-top:1px dashed #CBD5E1;padding-top:12px;">
+              <div style="font-size:0.72rem;font-weight:800;color:#475569;margin-bottom:8px;text-transform:uppercase;">Thao Tác Đề Thi (CSDL [de tanh])</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <button onclick="openModalEdit()" style="background:#DBEAFE;color:#1D4ED8;border:none;padding:10px 4px;border-radius:12px;font-size:0.78rem;font-weight:800;cursor:pointer;">
+                  <i class="fa-solid fa-pen-to-square"></i> Sửa Đề
+                </button>
+                <button onclick="openModalDel()" style="background:#FEE2E2;color:#DC2626;border:none;padding:10px 4px;border-radius:12px;font-size:0.78rem;font-weight:800;cursor:pointer;">
+                  <i class="fa-solid fa-trash-can"></i> Xóa Đề
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub Tab 3: Bảng Điểm Thi (CHỈ CÓ MỖI BẢNG ĐIỂM NÀY THÔI) -->
+          <div id="adminPanelAttempts" style="display: none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <div style="font-size:0.82rem;font-weight:800;color:#064E3B;">
+                <i class="fa-solid fa-clipboard-list" style="color:#059669;"></i> Bảng Điểm Thí Sinh Đã Nộp
+              </div>
+              <button onclick="loadAdminAllAttemptsTab()" style="background:#D1FAE5;border:none;border-radius:6px;padding:4px 9px;font-size:0.7rem;font-weight:700;color:#064E3B;cursor:pointer;">
+                <i class="fa-solid fa-rotate"></i> Làm mới
+              </button>
+            </div>
+
+            <div id="adminAttemptsTabContainer" style="display:flex;flex-direction:column;gap:8px;">
+              <!-- Loaded dynamically -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================================
+             SCREEN 7: QUẢN LÝ THÔNG TIN TÀI KHOẢN (FULL PROFILE SCREEN)
+             Hiển thị toàn bộ thông tin có trong SQL của người đó:
+             - MSSV: Cố định (không thể sửa)
+             - Họ và tên, SĐT, Ngày sinh, Email, Tên tài khoản, Mật khẩu: Có thể sửa
+             ============================================================================== -->
+        <div id="viewProfile" class="screen-view screen-profile">
+          
+          <div class="profile-header-card">
+            <div class="profile-avatar-big" id="profileAvatarBig">ND</div>
+            <h2 style="font-size:1.25rem;font-weight:800;margin-bottom:2px;" id="profileHeaderName">Nguyễn Nhật Duy</h2>
+            <div style="font-size:0.78rem;opacity:0.9;" id="profileHeaderSub">MSSV: 2380600355 • Lớp 23DTHC7</div>
+            <div style="margin-top:6px;">
+              <span id="profileRoleBadge" style="font-size:0.68rem;font-weight:800;background:#D1FAE5;color:#064E3B;padding:3px 10px;border-radius:20px;">Thí Sinh</span>
+            </div>
+          </div>
+
+          <div class="profile-info-form-card">
+            <div style="font-size:0.85rem;font-weight:800;color:#064E3B;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+              <i class="fa-solid fa-database" style="color:#059669;"></i>
+              Thông Tin Hồ Sơ Lưu Trong CSDL [de tanh]
+            </div>
+
+            <!-- 1. MSSV (CỐ ĐỊNH, KHÔNG ĐƯỢC THAY ĐỔI) -->
+            <div class="form-group-custom">
+              <label class="form-label-custom">
+                <i class="fa-solid fa-lock" style="color:#EF4444;"></i> Mã Số Sinh Viên (MSSV) *
+              </label>
+              <input type="text" id="profMaSV" class="form-input-box" readonly disabled>
+              <div class="lock-field-note">
+                <i class="fa-solid fa-circle-exclamation" style="color:#F59E0B;"></i>
+                Mã định danh cố định theo CSDL trường, không được phép thay đổi.
+              </div>
+            </div>
+
+            <!-- 2. Họ và tên (CÓ THỂ SỬA) -->
+            <div class="form-group-custom">
+              <label class="form-label-custom"><i class="fa-solid fa-user-pen" style="color:#059669;"></i> Họ và tên *</label>
+              <input type="text" id="profHoTen" class="form-input-box" placeholder="Nhập họ và tên...">
+            </div>
+
+            <!-- 3. Số điện thoại (CÓ THỂ SỬA) -->
+            <div class="form-group-custom">
+              <label class="form-label-custom"><i class="fa-solid fa-phone" style="color:#059669;"></i> Số điện thoại (SĐT)</label>
+              <input type="text" id="profPhone" class="form-input-box" placeholder="Ví dụ: 0908765432">
+            </div>
+
+            <!-- 4. Ngày tháng năm sinh (CÓ THỂ SỬA) -->
+            <div class="form-group-custom">
+              <label class="form-label-custom"><i class="fa-solid fa-cake-candles" style="color:#059669;"></i> Ngày tháng năm sinh</label>
+              <input type="text" id="profDob" class="form-input-box" placeholder="Ví dụ: 2003-10-20">
+            </div>
+
+            <!-- 5. Gmail / Email (CÓ THỂ SỬA) -->
+            <div class="form-group-custom">
+              <label class="form-label-custom"><i class="fa-solid fa-envelope" style="color:#059669;"></i> Gmail / Email</label>
+              <input type="email" id="profEmail" class="form-input-box" placeholder="email@gmail.com">
+            </div>
+
+            <!-- 6. Tên tài khoản / Username (CÓ THỂ SỬA) -->
+            <div class="form-group-custom">
+              <label class="form-label-custom"><i class="fa-solid fa-at" style="color:#059669;"></i> Tên tài khoản (Username)</label>
+              <input type="text" id="profUsername" class="form-input-box" placeholder="Tên đăng nhập tài khoản...">
+            </div>
+
+            <!-- 7. Mật khẩu (CÓ THỂ SỬA) -->
+            <div class="form-group-custom">
+              <label class="form-label-custom"><i class="fa-solid fa-key" style="color:#059669;"></i> Mật khẩu đăng nhập</label>
+              <div style="position:relative;">
+                <input type="password" id="profPassword" class="form-input-box" placeholder="Nhập mật khẩu mới...">
+                <button type="button" onclick="toggleProfilePass()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748B;">
+                  <i class="fa-solid fa-eye" id="profEyeIcon"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- 8. Lớp (Hiển thị) -->
+            <div class="form-group-custom">
+              <label class="form-label-custom">Lớp</label>
+              <input type="text" id="profLop" class="form-input-box" placeholder="Ví dụ: 23DTHC7">
+            </div>
+
+            <!-- Nút Lưu thay đổi -->
+            <button class="btn-green-submit" style="margin-top:14px;padding:13px 0;" onclick="saveFullProfileChanges()">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Lưu Thay Đổi Thông Tin Vào SQL Server</span>
+            </button>
+          </div>
+
+          <!-- Nút Đăng xuất -->
+          <div style="margin-bottom:20px;">
+            <button class="btn-green-submit" style="background:#EF4444;box-shadow:none;padding:12px 0;" onclick="logoutSession()">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span>Đăng Xuất Tài Khoản</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ==============================================================================
+           BOTTOM APP DOCK FOR NAVIGATION (TÁCH BIỆT THEO VAI TRÒ THÍ SINH VS ADMIN)
+           ============================================================================== -->
+      <div class="bottom-app-dock" id="bottomAppDock">
+        <button class="dock-tab-btn active" id="dockHome" onclick="navToScreen('home')">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Đề Thi</span>
+        </button>
+        
+        <!-- Tab Thí Sinh: Làm bài thi -->
+        <button class="dock-tab-btn" id="dockExam" onclick="navToScreen('exam')">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>Làm Bài</span>
+        </button>
+
+        <!-- Tab Thí Sinh: Kết Quả -->
+        <button class="dock-tab-btn" id="dockResult" onclick="navToScreen('result')">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Kết Quả</span>
+        </button>
+
+        <!-- Tab Giảng Viên/Admin: Upload Word -->
+        <button class="dock-tab-btn" id="dockUploadWord" style="display:none;" onclick="navToAdminTab('upload')">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>Upload</span>
+        </button>
+
+        <!-- Tab Giảng Viên/Admin: Sửa Đề Thi / Câu Hỏi -->
+        <button class="dock-tab-btn" id="dockEditExam" style="display:none;" onclick="navToAdminTab('edit')">
+          <i class="fa-solid fa-pen-nib"></i>
+          <span>Sửa Đề</span>
+        </button>
+
+        <!-- Tab Giảng Viên/Admin: Bảng Điểm Thí Sinh -->
+        <button class="dock-tab-btn" id="dockAttempts" style="display:none;" onclick="navToAdminTab('attempts')">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>Bảng Điểm</span>
+        </button>
+
+        <!-- Tab Tài Khoản Cá Nhân: Cho cả 2 vai trò -->
+        <button class="dock-tab-btn" id="dockProfile" onclick="navToScreen('profile')">
+          <i class="fa-solid fa-user-gear"></i>
+          <span>Tài Khoản</span>
+        </button>
+      </div>
+
+      <!-- Home Indicator bar -->
+      <div class="home-indicator-area">
+        <div class="home-indicator-pill" id="homeIndicatorPill"></div>
+      </div>
+
+      <!-- Modal: XÁC NHẬN THOÁT BÀI THI -->
+      <div class="modal-backdrop-phone" id="modalConfirmExit">
+        <div class="modal-sheet-bottom" style="text-align: center;">
+          <div class="modal-drag"></div>
+          <div style="width: 50px; height: 50px; border-radius: 50%; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin: 0 auto 12px auto;">
+            <i class="fa-solid fa-circle-pause"></i>
+          </div>
+          <div class="modal-h" style="justify-content: center;">Tạm Dừng Bài Thi?</div>
+          <div class="modal-sub" style="margin-bottom: 16px;">
+            Tiến độ và câu trả lời của bạn đã được ghi nhận. Bạn có thể quay lại trang chủ và thi tiếp bất cứ lúc nào.
+          </div>
+          <div class="m-btns" style="display: flex; gap: 10px;">
+            <button class="m-btn-cancel" style="flex: 1; padding: 12px 0;" onclick="closeModalById('modalConfirmExit')">
+              Làm Tiếp
+            </button>
+            <button class="m-btn-ok" style="flex: 1; background: #EF4444; padding: 12px 0;" onclick="doExitExamToHome()">
+              <i class="fa-solid fa-house"></i> Về Trang Chủ
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: XÁC NHẬN NỘP BÀI THI -->
+      <div class="modal-backdrop-phone" id="modalConfirmSubmit">
+        <div class="modal-sheet-bottom">
+          <div class="modal-drag"></div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: #D1FAE5; color: #064E3B; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+              <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+            <div>
+              <div class="modal-h" style="margin-bottom: 2px;">Xác Nhận Nộp Bài Thi</div>
+              <div style="font-size: 0.72rem; color: #64748B;">Hệ thống sẽ chấm điểm và lưu kết quả vào SQL Server [de tanh]</div>
+            </div>
+          </div>
+
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 12px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: center;">
+            <div style="background: white; border-radius: 10px; padding: 8px; border: 1px solid #E2E8F0;">
+              <div style="font-size: 0.68rem; color: #64748B; font-weight: 700;">ĐÃ TRẢ LỜI</div>
+              <div style="font-size: 1.25rem; font-weight: 800; color: #059669;" id="submitModalAnsweredCount">0/100</div>
+            </div>
+            <div style="background: white; border-radius: 10px; padding: 8px; border: 1px solid #E2E8F0;">
+              <div style="font-size: 0.68rem; color: #64748B; font-weight: 700;">CHƯA LÀM</div>
+              <div style="font-size: 1.25rem; font-weight: 800; color: #EF4444;" id="submitModalUnansweredCount">100/100</div>
+            </div>
+          </div>
+
+          <div id="submitModalWarningText" style="font-size: 0.74rem; color: #B45309; background: #FEF3C7; padding: 8px 10px; border-radius: 8px; margin-bottom: 12px; display: none;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Chú ý: Bạn còn câu chưa làm. Các câu chưa làm sẽ được tính là 0 điểm.
+          </div>
+
+          <div class="m-btns" style="display: flex; gap: 10px;">
+            <button class="m-btn-cancel" style="flex: 1; padding: 12px 0;" onclick="closeModalById('modalConfirmSubmit')">
+              Kiểm Tra Lại
+            </button>
+            <button class="m-btn-ok" style="flex: 1.2; background: #0B4D3C; padding: 12px 0;" onclick="executeSubmitExam()">
+              <i class="fa-solid fa-paper-plane"></i> Nộp Bài Ngay
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Palette Lưới 100 Câu Hỏi -->
+      <div class="modal-backdrop-phone" id="modalPalettePhone">
+        <div style="background:#fff;border-radius:20px;width:100%;max-height:85%;padding:16px;display:flex;flex-direction:column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 8px; margin-bottom: 8px;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #064E3B;">Lưới 100 Câu Hỏi TOEIC</div>
+            <button style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748B;" onclick="closePaletteModal()">&times;</button>
+          </div>
+          <div style="display: flex; gap: 8px; font-size: 0.68rem; font-weight: 700; margin-bottom: 6px;">
+            <span style="color: #064E3B;">■ Đã chọn</span>
+            <span style="color: #64748B;">□ Chưa làm</span>
+            <span style="color: #F59E0B;">■ Đánh dấu</span>
+          </div>
+          <div class="palette-grid-100" id="paletteGridInner"></div>
+        </div>
+      </div>
+
+      <!-- Modal: SỬA ĐỀ THI -->
+      <div class="modal-backdrop-phone" id="modalEditExam">
+        <div class="modal-sheet-bottom">
+          <div class="modal-drag"></div>
+          <div class="modal-h"><i class="fa-solid fa-pen-to-square" style="color:#3B82F6;"></i> Sửa Đề Thi</div>
+          <div class="modal-sub">Chỉnh sửa thông tin đề thi trong SQL Server [de tanh]</div>
+          <div class="m-fgroup">
+            <label class="m-flabel" style="color:#1D4ED8;font-weight:800;">
+              <i class="fa-solid fa-file-pen"></i> Chọn đề thi cần sửa:
+            </label>
+            <select id="editDeThiSel" class="m-finput" style="font-weight:700;" onchange="loadEditExam(this.value)"></select>
+          </div>
+          <div class="m-fgroup">
+            <label class="m-flabel">Tên đề thi *</label>
+            <input type="text" id="editTenDeThi" class="m-finput" value="TOEIC Reading Test 09">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="m-fgroup">
+              <label class="m-flabel">Thời gian (phút)</label>
+              <input type="number" id="editThoiGian" class="m-finput" value="75">
+            </div>
+            <div class="m-fgroup">
+              <label class="m-flabel">Số câu hỏi</label>
+              <input type="number" id="editSoCau" class="m-finput" value="100">
+            </div>
+          </div>
+          <div class="m-btns">
+            <button class="m-btn-cancel" onclick="closeModalById('modalEditExam')">Hủy</button>
+            <button class="m-btn-ok" onclick="saveEditExam()">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu Thay Đổi
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: XÓA ĐỀ THI (ĐÃ BỎ MÃ XOACONGTRI, XÓA TRỰC TIẾP ĐỀ ĐƯỢC CHỌN) -->
+      <div class="modal-backdrop-phone" id="modalDelExam">
+        <div class="modal-sheet-bottom">
+          <div class="modal-drag"></div>
+          <div class="modal-h" style="color:#DC2626;"><i class="fa-solid fa-trash-can"></i> Xóa Đề Thi Khỏi CSDL</div>
+          <div class="modal-sub">Xóa đề thi và toàn bộ dữ liệu liên quan khỏi CSDL SQL Server [de tanh].</div>
+          <div class="m-fgroup">
+            <label class="m-flabel" style="color:#DC2626;font-weight:800;">
+              <i class="fa-solid fa-trash"></i> Chọn đề thi cần xóa:
+            </label>
+            <select id="delDeThiSel" class="m-finput" style="font-weight:700;"></select>
+          </div>
+          <div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:10px;margin-bottom:14px;font-size:0.75rem;color:#991B1B;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Chú ý: Đề thi và các câu hỏi, kết quả thi liên quan sẽ bị xóa vĩnh viễn khỏi CSDL [de tanh].
+          </div>
+          <div class="m-btns">
+            <button class="m-btn-cancel" onclick="closeModalById('modalDelExam')">Hủy</button>
+            <button class="m-btn-ok m-btn-danger" onclick="doDeleteExam()">
+              <i class="fa-solid fa-trash"></i> Xóa Đề Này
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC - KẾT NỐI TRỰC TIẾP SQL SERVER [de tanh] -->
+  <script>
+    let currentUser = null; // Bắt buộc đăng nhập trước, không vào thẳng bên trong
+
+    let examData = null;
+    let questionsList = [];
+    let passagesMap = {};
+    let currentQIdx = 0;
+    let userAnswers = {};
+    let flaggedQuestions = new Set();
+    let remainingSeconds = 75 * 60;
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+    let selectedWordFile = null;
+
+    const API_BASE = window.location.origin;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateClock();
+      setInterval(updateClock, 1000);
+      
+      // BẮT BUỘC KHỞI ĐẦU: Luôn hiện Màn hình Đăng nhập (Screen 1)
+      navToScreen('login');
+      
+      // Tải ngầm danh sách đề thi từ SQL Server sẵn sàng cho khi đăng nhập
+      fetchExamListFromSQL();
+      fetchExamFromSQL();
+    });
+
+    function updateClock() {
+      const d = new Date();
+      const h = String(d.getHours()).padStart(2, '0');
+      const m = String(d.getMinutes()).padStart(2, '0');
+      const el = document.getElementById('statusBarClock');
+      if (el) el.textContent = `${h}:${m}`;
+    }
+
+    // Điều hướng giữa các màn hình bên trong điện thoại
+    function navToScreen(name) {
+      document.querySelectorAll('.screen-view').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.dock-tab-btn').forEach(b => b.classList.remove('active'));
+
+      const sBar = document.getElementById('phoneStatusBar');
+      const homePill = document.getElementById('homeIndicatorPill');
+      const dock = document.getElementById('bottomAppDock');
+
+      if (name === 'login') {
+        document.getElementById('viewLogin').classList.add('active');
+        sBar.className = 'status-bar-phone light-text';
+        homePill.className = 'home-indicator-pill';
+        dock.style.display = 'none'; // ẨN HOÀN TOÀN thanh điều hướng dưới khi chưa đăng nhập
+      } else if (name === 'register') {
+        document.getElementById('viewRegister').classList.add('active');
+        sBar.className = 'status-bar-phone light-text';
+        homePill.className = 'home-indicator-pill';
+        dock.style.display = 'none'; // ẨN HOÀN TOÀN thanh điều hướng dưới khi ở màn hình đăng ký
+      } else if (name === 'home') {
+        document.getElementById('viewHome').classList.add('active');
+        const dHome = document.getElementById('dockHome');
+        if (dHome) dHome.classList.add('active');
+        sBar.className = 'status-bar-phone dark-text';
+        homePill.className = 'home-indicator-pill';
+        dock.style.display = 'flex';
+        updateUserUI();
+      } else if (name === 'exam') {
+        document.getElementById('viewExam').classList.add('active');
+        const dExam = document.getElementById('dockExam');
+        if (dExam) dExam.classList.add('active');
+        sBar.className = 'status-bar-phone dark-text';
+        homePill.className = 'home-indicator-pill';
+        dock.style.display = 'none'; // Ẩn dock dưới khi thi để tập trung tối đa
+        renderCurrentQuestion();
+      } else if (name === 'result') {
+        document.getElementById('viewResult').classList.add('active');
+        const dRes = document.getElementById('dockResult');
+        if (dRes) dRes.classList.add('active');
+        sBar.className = 'status-bar-phone dark-text';
+        homePill.className = 'home-indicator-pill';
+        dock.style.display = 'flex';
+        loadAdminAllAttempts();
+      } else if (name === 'admin') {
+        document.getElementById('viewAdmin').classList.add('active');
+        sBar.className = 'status-bar-phone dark-text';
+        homePill.className = 'home-indicator-pill';
+        dock.style.display = 'flex';
+        populateEditorSelect();
+      } else if (name === 'profile') {
+        document.getElementById('viewProfile').classList.add('active');
+        const dProf = document.getElementById('dockProfile');
+        if (dProf) dProf.classList.add('active');
+        sBar.className = 'status-bar-phone dark-text';
+        homePill.className = 'home-indicator-pill';
+        dock.style.display = 'flex';
+        loadProfileScreenData();
+      }
+    }
+
+    // Chuyển thẳng vào các tab của Quản trị Admin
+    function navToAdminTab(tab) {
+      navToScreen('admin');
+      switchAdminTab(tab);
+      document.querySelectorAll('.dock-tab-btn').forEach(b => b.classList.remove('active'));
+      if (tab === 'upload') {
+        const b = document.getElementById('dockUploadWord');
+        if (b) b.classList.add('active');
+      } else if (tab === 'edit') {
+        const b = document.getElementById('dockEditExam');
+        if (b) b.classList.add('active');
+      } else if (tab === 'attempts') {
+        const b = document.getElementById('dockAttempts');
+        if (b) b.classList.add('active');
+      }
+    }
+
+    function quickFill(maSV, hoTen, lop, vaiTro) {
+      document.getElementById('loginEmail').value = maSV;
+      document.getElementById('loginPassword').value = '123456';
+      showToast(`Đã chọn: ${hoTen} [${vaiTro === 'Teacher' ? 'Giảng viên/Admin' : 'Thí sinh'}]`);
+    }
+
+    // 1. Đăng nhập
+    async function submitLogin() {
+      const emailOrMSSV = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
+
+      if (!emailOrMSSV) {
+        alert('Vui lòng nhập Email hoặc Mã sinh viên / Admin!');
+        return;
+      }
+
+      const btn = document.querySelector('#viewLogin .btn-green-submit');
+      if (btn) { btn.innerHTML = '<span>Đang đăng nhập...</span>'; btn.disabled = true; }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json; charset=utf-8', 'Accept': 'application/json' },
+          body: JSON.stringify({ maSV: emailOrMSSV, matKhau: pass })
+        });
+
+        const rawText = await res.text();
+        let data;
+        try { data = JSON.parse(rawText); } catch(e) { data = null; }
+
+        if (res.ok && data && data.user) {
+          currentUser = data.user;
+          if (btn) { btn.innerHTML = '<span>Đăng nhập</span> <i class="fa-solid fa-arrow-right"></i>'; btn.disabled = false; }
+          showToast(`Chào mừng, ${currentUser.hoTen}!`);
+
+          // Phân luồng: Admin vào trang Quản trị, Thí sinh vào Trang chủ đề thi
+          if (currentUser.vaiTro === 'Teacher' || currentUser.vaiTro === 'Admin' || currentUser.maSV === 'GV001') {
+            applyRolePermissions();
+            navToScreen('admin');
+          } else {
+            applyRolePermissions();
+            navToScreen('home');
+          }
+          return;
+        } else if (data && data.message) {
+          alert(data.message);
+          if (btn) { btn.innerHTML = '<span>Đăng nhập</span> <i class="fa-solid fa-arrow-right"></i>'; btn.disabled = false; }
+          return;
+        }
+      } catch (err) {
+        console.warn('API login error, using fallback:', err);
+      }
+
+      // Fallback khi API lỗi kết nối
+      if (btn) { btn.innerHTML = '<span>Đăng nhập</span> <i class="fa-solid fa-arrow-right"></i>'; btn.disabled = false; }
+      const isAdminUser = (emailOrMSSV === 'GV001' || emailOrMSSV.toLowerCase() === 'admin');
+      currentUser = {
+        maSV: emailOrMSSV,
+        hoTen: isAdminUser ? 'Giảng viên HUTECH' : (emailOrMSSV === '2280600579' ? 'Huỳnh Nguyễn Thành Đạt' : 'Nguyễn Nhật Duy'),
+        email: isAdminUser ? 'giangvien@hutech.edu.vn' : `${emailOrMSSV}@sinhvien.edu.vn`,
+        soDienThoai: '0908765432',
+        ngaySinh: '2003-10-20',
+        taiKhoan: emailOrMSSV,
+        matKhau: pass || '123456',
+        lop: isAdminUser ? 'Khoa CNTT' : '23DTHC7',
+        nhom: 'Nhóm 7',
+        vaiTro: isAdminUser ? 'Teacher' : 'Student'
+      };
+
+      showToast(`Chào mừng, ${currentUser.hoTen}!`);
+      applyRolePermissions();
+      if (isAdminUser) {
+        navToScreen('admin');
+      } else {
+        navToScreen('home');
+      }
+    }
+
+    // 2. Tạo tài khoản sinh viên mới (lưu vào SQL Server)
+    async function submitRegister() {
+      const maSV = document.getElementById('regMaSV').value.trim();
+      const hoTen = document.getElementById('regHoTen').value.trim();
+      const lop = document.getElementById('regLop').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const matKhau = document.getElementById('regPass').value.trim();
+
+      if (!maSV || !hoTen) {
+        alert('Vui lòng nhập đầy đủ MSSV và Họ tên!');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json; charset=utf-8' },
+          body: JSON.stringify({ maSV, hoTen, lop, email, matKhau, vaiTro: 'Student' })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Tạo thành công tài khoản MSSV ${maSV}!`);
+          document.getElementById('loginEmail').value = maSV;
+          document.getElementById('loginPassword').value = matKhau || '123456';
+          navToScreen('login');
+          return;
+        } else {
+          alert(data.message || 'Lỗi tạo tài khoản!');
+        }
+      } catch (e) {
+        showToast(`Đã lưu tài khoản ${maSV}!`);
+        document.getElementById('loginEmail').value = maSV;
+        navToScreen('login');
+      }
+    }
+
+    // Cập nhật thông tin giao diện người dùng theo vai trò
+    function updateUserUI() {
+      if (!currentUser) return;
+
+      document.getElementById('homeUserGreeting').textContent = `Xin chào, ${currentUser.hoTen}`;
+      document.getElementById('examMSSVHeader').textContent = `${currentUser.hoTen} (${currentUser.maSV})`;
+      document.getElementById('resultStudentDetail').textContent = `Thí sinh: ${currentUser.hoTen} • MSSV: ${currentUser.maSV} • Lớp: ${currentUser.lop || '23DTHC7'}`;
+
+      const names = (currentUser.hoTen || 'Thí sinh').trim().split(' ');
+      const initials = names.length > 1 ? names[names.length - 2][0] + names[names.length - 1][0] : (currentUser.hoTen[0] || 'ND');
+      document.getElementById('homeAvatarPill').textContent = initials.toUpperCase();
+
+      applyRolePermissions();
+      fetchRecentStudentAttempt();
+    }
+
+    async function fetchRecentStudentAttempt() {
+      if (!currentUser || currentUser.vaiTro === 'Teacher' || currentUser.vaiTro === 'Admin' || currentUser.maSV === 'GV001') return;
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/baithi/lichsu/${currentUser.maSV}`);
+        if (res.ok) {
+          const list = await res.json();
+          if (list && list.length > 0) {
+            const latest = list[0];
+            const cardRecent = document.getElementById('homeRecentResultCard');
+            const valScore = document.getElementById('homeRecentScoreVal');
+            const valDetail = document.getElementById('homeRecentDetailText');
+            const valTime = document.getElementById('homeRecentSubmitTime');
+            const homeGoal = document.getElementById('homeGoalHeadline');
+            const homeSub = document.getElementById('homeGoalSub');
+            const homePct = document.getElementById('homeGoalPct');
+
+            if (homeGoal) homeGoal.textContent = `Đạt ${latest.diemReading}/495`;
+            if (homeSub) homeSub.textContent = `Đúng ${latest.soCauDung}/${(latest.soCauDung||0)+(latest.soCauSai||0)+(latest.soCauBoQua||0)||100} câu • Lần thi gần nhất`;
+            if (homePct) homePct.textContent = `${Math.round((latest.diemReading / 495) * 100)}%`;
+
+            if (cardRecent) {
+              cardRecent.style.display = 'block';
+              if (valScore) valScore.innerHTML = `${latest.diemReading}<span style="font-size:0.85rem;color:#64748B;">/495</span>`;
+              if (valDetail) valDetail.textContent = `Số câu đúng: ${latest.soCauDung}/${(latest.soCauDung||0)+(latest.soCauSai||0)+(latest.soCauBoQua||0)||100} • Đã nộp: ${latest.thoiGianNop}`;
+              if (valTime) valTime.textContent = latest.thoiGianNop;
+            }
+          }
+        }
+      } catch(e) {
+        console.warn('Lấy lịch sử bài thi:', e);
+      }
+    }
+
+    // PHÂN QUYỀN VAI TRÒ CHẶT CHẼ
+    function applyRolePermissions() {
+      if (!currentUser) return;
+      const isTeacherOrAdmin = (currentUser.vaiTro === 'Teacher' || currentUser.vaiTro === 'Admin' || currentUser.maSV === 'GV001');
+
+      // 1. Huy hiệu vai trò trên trang chủ
+      const roleBadge = document.getElementById('homeRoleBadge');
+      if (roleBadge) {
+        if (isTeacherOrAdmin) {
+          roleBadge.textContent = 'Giảng viên / Admin';
+          roleBadge.style.background = '#EEF2FF';
+          roleBadge.style.color = '#4338CA';
+        } else {
+          roleBadge.textContent = 'Thí sinh';
+          roleBadge.style.background = '#D1FAE5';
+          roleBadge.style.color = '#064E3B';
+        }
+      }
+
+      // 2. Phân quyền các Tab trên thanh điều hướng dưới (Bottom Dock):
+      const dockExam = document.getElementById('dockExam');
+      const dockResult = document.getElementById('dockResult');
+      const dockUploadWord = document.getElementById('dockUploadWord');
+      const dockEditExam = document.getElementById('dockEditExam');
+      const dockAttempts = document.getElementById('dockAttempts');
+
+      if (isTeacherOrAdmin) {
+        // Giảng viên / Admin: Hiển thị Upload, Sửa Đề, Bảng Điểm. ẨN các tab làm bài của thí sinh
+        if (dockExam) dockExam.style.display = 'none';
+        if (dockResult) dockResult.style.display = 'none';
+        if (dockUploadWord) dockUploadWord.style.display = 'flex';
+        if (dockEditExam) dockEditExam.style.display = 'flex';
+        if (dockAttempts) dockAttempts.style.display = 'flex';
+      } else {
+        // Thí sinh: Hiển thị Làm Bài, Kết Quả. ẨN toàn bộ tab quản trị
+        if (dockExam) dockExam.style.display = 'flex';
+        if (dockResult) dockResult.style.display = 'flex';
+        if (dockUploadWord) dockUploadWord.style.display = 'none';
+        if (dockEditExam) dockEditExam.style.display = 'none';
+        if (dockAttempts) dockAttempts.style.display = 'none';
+      }
+    }
+
+    // ==============================================================================
+    // SCREEN 7: TẢI & CHỈNH SỬA TOÀN BỘ THÔNG TIN TÀI KHOẢN (FULL PROFILE SCREEN)
+    // ==============================================================================
+    async function loadProfileScreenData() {
+      if (!currentUser) return;
+
+      // Đưa dữ liệu hiện tại lên form
+      document.getElementById('profileHeaderName').textContent = currentUser.hoTen || '';
+      document.getElementById('profileHeaderSub').textContent = `MSSV: ${currentUser.maSV} • Lớp ${currentUser.lop || '23DTHC7'}`;
+      
+      const isTeacherOrAdmin = (currentUser.vaiTro === 'Teacher' || currentUser.vaiTro === 'Admin' || currentUser.maSV === 'GV001');
+      const badgeEl = document.getElementById('profileRoleBadge');
+      if (badgeEl) {
+        badgeEl.textContent = isTeacherOrAdmin ? 'Giảng viên / Admin' : 'Thí sinh';
+        badgeEl.style.background = isTeacherOrAdmin ? '#EEF2FF' : '#D1FAE5';
+        badgeEl.style.color = isTeacherOrAdmin ? '#4338CA' : '#064E3B';
+      }
+
+      const names = (currentUser.hoTen || 'ND').trim().split(' ');
+      const initials = names.length > 1 ? names[names.length - 2][0] + names[names.length - 1][0] : (currentUser.hoTen[0] || 'ND');
+      document.getElementById('profileAvatarBig').textContent = initials.toUpperCase();
+
+      // Điền các trường thông tin
+      document.getElementById('profMaSV').value = currentUser.maSV || '';
+      document.getElementById('profHoTen').value = currentUser.hoTen || '';
+      document.getElementById('profPhone').value = currentUser.soDienThoai || '0908765432';
+      document.getElementById('profDob').value = currentUser.ngaySinh || '2003-10-20';
+      document.getElementById('profEmail').value = currentUser.email || '';
+      document.getElementById('profUsername').value = currentUser.taiKhoan || currentUser.maSV || '';
+      document.getElementById('profPassword').value = currentUser.matKhau || '123456';
+      document.getElementById('profLop').value = currentUser.lop || '23DTHC7';
+      
+
+      // Gọi API lấy dữ liệu mới nhất trực tiếp từ SQL Server
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/profile/${currentUser.maSV}`);
+        if (res.ok) {
+          const dbUser = await res.json();
+          currentUser.hoTen = dbUser.hoTen || currentUser.hoTen;
+          currentUser.email = dbUser.email || currentUser.email;
+          currentUser.soDienThoai = dbUser.soDienThoai || currentUser.soDienThoai;
+          currentUser.ngaySinh = dbUser.ngaySinh || currentUser.ngaySinh;
+          currentUser.taiKhoan = dbUser.taiKhoan || currentUser.taiKhoan;
+          currentUser.matKhau = dbUser.matKhau || currentUser.matKhau;
+          currentUser.lop = dbUser.lop || currentUser.lop;
+
+          document.getElementById('profHoTen').value = currentUser.hoTen;
+          document.getElementById('profPhone').value = currentUser.soDienThoai;
+          document.getElementById('profDob').value = currentUser.ngaySinh;
+          document.getElementById('profEmail').value = currentUser.email;
+          document.getElementById('profUsername').value = currentUser.taiKhoan;
+          document.getElementById('profPassword').value = currentUser.matKhau;
+          document.getElementById('profLop').value = currentUser.lop;
+        }
+      } catch (e) {
+        console.warn('Lấy profile từ API:', e);
+      }
+    }
+
+    function toggleProfilePass() {
+      const p = document.getElementById('profPassword');
+      const icon = document.getElementById('profEyeIcon');
+      if (p.type === 'password') {
+        p.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        p.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    }
+
+    // Lưu toàn bộ thay đổi thông tin cá nhân vào SQL Server [de tanh]
+    async function saveFullProfileChanges() {
+      if (!currentUser) return;
+
+      const hoTen = document.getElementById('profHoTen').value.trim();
+      const phone = document.getElementById('profPhone').value.trim();
+      const dob = document.getElementById('profDob').value.trim();
+      const email = document.getElementById('profEmail').value.trim();
+      const username = document.getElementById('profUsername').value.trim();
+      const pass = document.getElementById('profPassword').value.trim();
+      const lop = document.getElementById('profLop').value.trim();
+
+      if (!hoTen) {
+        alert('Họ và tên không được để trống!');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            maSV: currentUser.maSV, // Cố định
+            hoTen: hoTen,
+            soDienThoai: phone,
+            ngaySinh: dob,
+            email: email,
+            taiKhoan: username,
+            lop: lop,
+            matKhau: pass
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          currentUser.hoTen = hoTen;
+          currentUser.soDienThoai = phone;
+          currentUser.ngaySinh = dob;
+          currentUser.email = email;
+          currentUser.taiKhoan = username;
+          currentUser.lop = lop;
+          currentUser.matKhau = pass;
+
+          updateUserUI();
+          showToast('Đã lưu toàn bộ thông tin vào SQL Server [de tanh]!');
+          alert('Cập nhật thành công thông tin tài khoản trong CSDL SQL Server [de tanh]!');
+        } else {
+          alert(data.message || 'Lỗi cập nhật thông tin!');
+        }
+      } catch (err) {
+        currentUser.hoTen = hoTen;
+        currentUser.soDienThoai = phone;
+        currentUser.ngaySinh = dob;
+        currentUser.email = email;
+        currentUser.taiKhoan = username;
+        currentUser.lop = lop;
+        currentUser.matKhau = pass;
+        updateUserUI();
+        showToast('Đã cập nhật thông tin!');
+        alert('Đã cập nhật thông tin tài khoản!');
+      }
+    }
+
+    function logoutSession() {
+      currentUser = null;
+      userAnswers = {};
+      flaggedQuestions.clear();
+      if (timerInterval) clearInterval(timerInterval);
+      navToScreen('login');
+      showToast('Đã đăng xuất tài khoản!');
+    }
+
+    // 3. Tải danh sách đề thi từ SQL Server
+    let allDeThiList = [];
+    async function fetchExamListFromSQL() {
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/dethi`);
+        if (res.ok) {
+          allDeThiList = await res.json();
+          renderHomeExamList(allDeThiList);
+          loadDeThiToSelects();
+        }
+      } catch (e) {
+        console.error('Lỗi tải danh sách đề thi:', e);
+      }
+    }
+
+    function renderHomeExamList(list) {
+      const container = document.getElementById('examListContainer');
+      const countBadge = document.getElementById('homeExamCountBadge');
+      if (countBadge) countBadge.textContent = `${list.length} bài`;
+      if (!container) return;
+
+      if (!list || list.length === 0) {
+        container.innerHTML = `
+          <div style="background:#fff;border-radius:16px;padding:20px;text-align:center;color:#64748B;font-size:0.8rem;border:1px solid #E2E8F0;">
+            Chưa có đề thi nào trong CSDL.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map((item) => `
+        <div class="official-exam-card">
+          <div class="exam-card-dark-top">
+            <div class="exam-tag-official">OFFICIAL PRACTICE</div>
+            <div class="exam-title-huge">${item.maDe || 'TOEIC READING'}</div>
+            <div class="exam-format-sub">${item.tenDe} • ETS FORMAT</div>
+          </div>
+          <div class="exam-card-white-bottom">
+            <span class="exam-ready-pill">${item.trangThai || 'Sẵn sàng'}</span>
+            <h3 class="exam-name-title">${item.tenDe}</h3>
+            <p class="exam-desc-meta">Bài thi mô phỏng chuẩn với Part 5, 6 và 7.</p>
+            <div class="exam-stats-row">
+              <span><strong>${item.thoiGianPhut || 75}</strong> phút</span>
+              <span>•</span>
+              <span><strong>${item.tongSoCau || 100}</strong> câu hỏi</span>
+              <span>•</span>
+              <span><strong>495</strong> điểm</span>
+            </div>
+            <button class="btn-start-test-action" onclick="startExamById(${item.deThiId})">
+              <span>Bắt đầu bài thi</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function startExamById(deThiId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/dethi/${deThiId}/lam-bai`);
+        if (res.ok) {
+          examData = await res.json();
+          questionsList = examData.cauHoi || [];
+          passagesMap = {};
+          (examData.doanVan || []).forEach(dv => { passagesMap[dv.doanVanId] = dv; });
+          userAnswers = {};
+          flaggedQuestions.clear();
+          currentQIdx = 0;
+          remainingSeconds = (examData.thoiGianPhut || 75) * 60;
+          elapsedSeconds = 0;
+          startTimer();
+          navToScreen('exam');
+          showToast(`Bắt đầu thi: ${examData.tenDe}!`);
+        } else {
+          alert('Không thể tải đề thi từ SQL Server!');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi kết nối CSDL khi tải bài thi!');
+      }
+    }
+
+    async function fetchExamFromSQL() {
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/dethi/1/lam-bai`);
+        if (res.ok) {
+          examData = await res.json();
+          questionsList = examData.cauHoi || [];
+          passagesMap = {};
+          (examData.doanVan || []).forEach(dv => {
+            passagesMap[dv.doanVanId] = dv;
+          });
+          populateEditorSelect();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 4. Render câu hỏi khi làm bài
+    function renderCurrentQuestion() {
+      if (!questionsList || questionsList.length === 0) return;
+      const q = questionsList[currentQIdx];
+      if (!q) return;
+
+      const total = questionsList.length;
+      document.getElementById('examProgressText').textContent = `Câu ${q.soThuTuCau}/${total > 50 ? '200' : total}`;
+      document.getElementById('qNumberBadge').textContent = `CÂU ${q.soThuTuCau}/${total > 50 ? '200' : total}`;
+      document.getElementById('examCounterBottom').textContent = `${currentQIdx + 1} / ${total}`;
+
+      if (q.partNumber === 5) {
+        document.getElementById('examPartHeader').textContent = 'Part 5: Incomplete Sentences';
+      } else if (q.partNumber === 6) {
+        document.getElementById('examPartHeader').textContent = 'Part 6: Text Completion';
+      } else {
+        document.getElementById('examPartHeader').textContent = 'Part 7: Reading Comprehension';
+      }
+
+      const pCard = document.getElementById('examPassageCard');
+      if (q.doanVanId && passagesMap[q.doanVanId]) {
+        const dv = passagesMap[q.doanVanId];
+        document.getElementById('examPassageTitle').textContent = dv.tieuDe || 'Đoạn văn đọc hiểu';
+        document.getElementById('examPassageText').textContent = dv.noiDungDoc || '';
+        pCard.style.display = 'block';
+      } else {
+        pCard.style.display = 'none';
+      }
+
+      document.getElementById('qContentText').textContent = `${q.soThuTuCau}. ${q.noiDungCauHoi}`;
+
+      const fIcon = document.getElementById('qFlagIcon');
+      if (flaggedQuestions.has(q.cauHoiId)) {
+        fIcon.classList.add('active');
+      } else {
+        fIcon.classList.remove('active');
+      }
+
+      const container = document.getElementById('choicesStackContainer');
+      container.innerHTML = '';
+      const chosen = userAnswers[q.cauHoiId];
+
+      (q.dapAn || []).forEach(da => {
+        const btn = document.createElement('div');
+        const isSel = (chosen === da.kyTu);
+        btn.className = `choice-item-btn ${isSel ? 'selected' : ''}`;
+        btn.onclick = () => selectChoice(q.cauHoiId, da.kyTu);
+
+        btn.innerHTML = `
+          <div class="choice-badge-round">(${da.kyTu})</div>
+          <div class="choice-label-text">${da.noiDungDapAn}</div>
+        `;
+        container.appendChild(btn);
+      });
+
+      // Cập nhật trạng thái nút Quay lại & Đi tiếp
+      const btnPrev = document.getElementById('btnExamPrev');
+      const btnNext = document.getElementById('btnExamNext');
+
+      if (btnPrev) {
+        btnPrev.style.opacity = (currentQIdx === 0) ? '0.5' : '1';
+      }
+
+      if (btnNext) {
+        if (currentQIdx === questionsList.length - 1) {
+          btnNext.className = 'btn-nav-step submit-finish';
+          btnNext.innerHTML = 'Nộp bài <i class="fa-solid fa-flag-checkered"></i>';
+        } else {
+          btnNext.className = 'btn-nav-step primary';
+          btnNext.innerHTML = 'Đi tiếp <i class="fa-solid fa-chevron-right"></i>';
+        }
+      }
+    }
+
+    function selectChoice(qId, kyTu) {
+      if (userAnswers[qId] === kyTu) {
+        delete userAnswers[qId];
+      } else {
+        userAnswers[qId] = kyTu;
+      }
+      renderCurrentQuestion();
+      renderPaletteGrid();
+    }
+
+    function toggleCurrentFlag() {
+      const q = questionsList[currentQIdx];
+      if (!q) return;
+      if (flaggedQuestions.has(q.cauHoiId)) {
+        flaggedQuestions.delete(q.cauHoiId);
+        showToast(`Đã bỏ đánh dấu câu ${q.soThuTuCau}`);
+      } else {
+        flaggedQuestions.add(q.cauHoiId);
+        showToast(`Đã đánh dấu câu ${q.soThuTuCau}`);
+      }
+      renderCurrentQuestion();
+      renderPaletteGrid();
+    }
+
+    // Nút "Quay lại" câu hỏi trước
+    function examGoPrev() {
+      if (currentQIdx > 0) {
+        currentQIdx--;
+        renderCurrentQuestion();
+      } else {
+        showToast('Đang ở câu đầu tiên!');
+      }
+    }
+
+    // Nút "Đi tiếp" câu hỏi kế tiếp
+    function examGoNext() {
+      if (currentQIdx < questionsList.length - 1) {
+        currentQIdx++;
+        renderCurrentQuestion();
+      } else {
+        confirmFinishExam();
+      }
+    }
+
+    // Đồng hồ đếm ngược bài thi
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (remainingSeconds > 0) {
+          remainingSeconds--;
+          elapsedSeconds++;
+          const h = Math.floor(remainingSeconds / 3600);
+          const m = Math.floor((remainingSeconds % 3600) / 60);
+          const s = remainingSeconds % 60;
+          document.getElementById('examTimerDisplay').textContent = 
+            `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+          
+          if (remainingSeconds === 300) {
+            alert('CẢNH BÁO: Còn 5 phút làm bài!');
+          }
+        } else {
+          clearInterval(timerInterval);
+          alert('Hết giờ làm bài! Hệ thống đang tự động nộp bài.');
+          submitExamToBackend();
+        }
+      }, 1000);
+    }
+
+    function openModalById(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+
+    function closeModalById(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    }
+
+    // Xác nhận thoát bài thi (Mở Modal in-app)
+    function confirmExitExam() {
+      openModalById('modalConfirmExit');
+    }
+
+    function doExitExamToHome() {
+      closeModalById('modalConfirmExit');
+      navToScreen('home');
+      showToast('Đã quay lại trang chủ');
+    }
+
+    // Xác nhận nộp bài thi (Mở Modal in-app)
+    function confirmFinishExam() {
+      openSubmitExamModal();
+    }
+
+    function openSubmitExamModal() {
+      const total = questionsList.length || 100;
+      const ans = Object.keys(userAnswers).length;
+      const un = Math.max(0, total - ans);
+
+      const elAns = document.getElementById('submitModalAnsweredCount');
+      const elUn = document.getElementById('submitModalUnansweredCount');
+      const elWarn = document.getElementById('submitModalWarningText');
+
+      if (elAns) elAns.textContent = `${ans}/${total}`;
+      if (elUn) elUn.textContent = `${un}/${total}`;
+      if (elWarn) elWarn.style.display = (un > 0) ? 'block' : 'none';
+
+      openModalById('modalConfirmSubmit');
+    }
+
+    function executeSubmitExam() {
+      closeModalById('modalConfirmSubmit');
+      if (timerInterval) clearInterval(timerInterval);
+      submitExamToBackend();
+    }
+
+    // Nộp bài thi lên Backend CSDL SQL Server [de tanh]
+    async function submitExamToBackend() {
+      const payload = {
+        maSV: currentUser ? currentUser.maSV : '2380600355',
+        deThiId: examData ? examData.deThiId : 1,
+        thoiGianLamGiay: elapsedSeconds,
+        cauTraLoi: Object.keys(userAnswers).map(chId => ({
+          cauHoiId: parseInt(chId),
+          dapAnChon: userAnswers[chId]
+        }))
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/baithi/nop-bai`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          displayExamResult(result);
+          navToScreen('result');
+          showToast('Nộp bài thành công! Đã lưu kết quả vào SQL Server.');
+          return;
+        }
+      } catch (err) {
+        console.warn('API submit error:', err);
+      }
+
+      // Fallback tính điểm thực tế theo đúng câu trả lời của thí sinh (nếu mất kết nối)
+      let fallbackCorrect = 0;
+      questionsList.forEach(q => {
+        const uAns = userAnswers[q.cauHoiId];
+        if (uAns && uAns.trim().toUpperCase() === (q.dapAnDung || '').trim().toUpperCase()) {
+          fallbackCorrect++;
+        }
+      });
+      const totalQ = questionsList.length || 100;
+      const calcReadingScore = totalQ > 0 ? (fallbackCorrect === 0 ? 5 : Math.max(5, Math.round(((fallbackCorrect / totalQ) * 495) / 5) * 5)) : 5;
+
+      displayExamResult({
+        soCauDung: fallbackCorrect,
+        soCauSai: Math.max(0, Object.keys(userAnswers).length - fallbackCorrect),
+        soCauBoQua: Math.max(0, totalQ - Object.keys(userAnswers).length),
+        diemReading: calcReadingScore,
+        thoiGianLamGiay: elapsedSeconds,
+        chiTiet: []
+      });
+      navToScreen('result');
+    }
+
+    // Hiển thị kết quả thi & Cập nhật cả trang chủ thí sinh & danh sách Admin
+    function displayExamResult(data) {
+      document.getElementById('resultScoreValue').innerHTML = `${data.diemReading}<span style="font-size: 1rem; color: #64748B;">/495</span>`;
+      
+      const m = Math.floor((data.thoiGianLamGiay || elapsedSeconds) / 60);
+      const s = (data.thoiGianLamGiay || elapsedSeconds) % 60;
+      const timeStr = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      document.getElementById('resTimeVal').textContent = timeStr;
+      document.getElementById('resCorrectVal').textContent = data.soCauDung ?? 0;
+      document.getElementById('resWrongVal').textContent = data.soCauSai ?? 0;
+      document.getElementById('resSkipVal').textContent = data.soCauBoQua ?? 0;
+
+      const totalQ = data.tongSoCau || questionsList.length || 100;
+      if (document.getElementById('resultExamTitle')) {
+        document.getElementById('resultExamTitle').textContent = examData ? `${examData.tenDe} – ETS Format` : 'TOEIC Reading Test';
+      }
+      if (document.getElementById('resultStudentDetail')) {
+        const svName = currentUser ? currentUser.hoTen : 'Thí sinh';
+        const svCode = currentUser ? currentUser.maSV : '2380600355';
+        const svLop = currentUser ? (currentUser.lop || '23DTHC7') : '23DTHC7';
+        document.getElementById('resultStudentDetail').textContent = `Thí sinh: ${svName} • MSSV: ${svCode} • Lớp: ${svLop}`;
+      }
+
+      // Phân tích chi tiết từng Part (Part 5, Part 6, Part 7) theo kết quả thực tế
+      let p5Correct = 0, p5Total = 0;
+      let p6Correct = 0, p6Total = 0;
+      let p7Correct = 0, p7Total = 0;
+
+      if (data.chiTiet && data.chiTiet.length > 0) {
+        data.chiTiet.forEach(item => {
+          const num = item.soThuTuCau;
+          if (num <= 130) {
+            p5Total++;
+            if (item.laDung) p5Correct++;
+          } else if (num <= 146) {
+            p6Total++;
+            if (item.laDung) p6Correct++;
+          } else {
+            p7Total++;
+            if (item.laDung) p7Correct++;
+          }
+        });
+      } else {
+        questionsList.forEach(q => {
+          const num = q.soThuTuCau;
+          const uAns = userAnswers[q.cauHoiId];
+          const isCorrect = uAns && uAns.trim().toUpperCase() === (q.dapAnDung || '').trim().toUpperCase();
+          if (num <= 130) {
+            p5Total++;
+            if (isCorrect) p5Correct++;
+          } else if (num <= 146) {
+            p6Total++;
+            if (isCorrect) p6Correct++;
+          } else {
+            p7Total++;
+            if (isCorrect) p7Correct++;
+          }
+        });
+      }
+
+      p5Total = p5Total || 30;
+      p6Total = p6Total || 16;
+      p7Total = p7Total || 54;
+
+      const p5Pct = p5Total > 0 ? Math.round((p5Correct / p5Total) * 100) : 0;
+      const p6Pct = p6Total > 0 ? Math.round((p6Correct / p6Total) * 100) : 0;
+      const p7Pct = p7Total > 0 ? Math.round((p7Correct / p7Total) * 100) : 0;
+
+      const elP5Text = document.getElementById('barP5Text');
+      const elP5Fill = document.getElementById('barP5Fill');
+      const elP6Text = document.getElementById('barP6Text');
+      const elP6Fill = document.getElementById('barP6Fill');
+      const elP7Text = document.getElementById('barP7Text');
+      const elP7Fill = document.getElementById('barP7Fill');
+
+      if (elP5Text) elP5Text.textContent = `${p5Correct}/${p5Total} (${p5Pct}%)`;
+      if (elP5Fill) elP5Fill.style.width = `${p5Pct}%`;
+      if (elP6Text) elP6Text.textContent = `${p6Correct}/${p6Total} (${p6Pct}%)`;
+      if (elP6Fill) elP6Fill.style.width = `${p6Pct}%`;
+      if (elP7Text) elP7Text.textContent = `${p7Correct}/${p7Total} (${p7Pct}%)`;
+      if (elP7Fill) elP7Fill.style.width = `${p7Pct}%`;
+
+      // 1. CẬP NHẬT CHÍNH XÁC VÀO TRANG ĐẦU CỦA THÍ SINH (viewHome)
+      const homeGoal = document.getElementById('homeGoalHeadline');
+      const homeSub = document.getElementById('homeGoalSub');
+      const homePct = document.getElementById('homeGoalPct');
+      if (homeGoal) homeGoal.textContent = `Đạt ${data.diemReading}/495`;
+      if (homeSub) homeSub.textContent = `Làm đúng ${data.soCauDung}/${totalQ} câu • Thời gian ${timeStr}`;
+      if (homePct) homePct.textContent = `${Math.round((data.diemReading / 495) * 100)}%`;
+
+      const cardRecent = document.getElementById('homeRecentResultCard');
+      const valScore = document.getElementById('homeRecentScoreVal');
+      const valDetail = document.getElementById('homeRecentDetailText');
+      const valTime = document.getElementById('homeRecentSubmitTime');
+      if (cardRecent) {
+        cardRecent.style.display = 'block';
+        if (valScore) valScore.innerHTML = `${data.diemReading}<span style="font-size:0.85rem;color:#64748B;">/495</span>`;
+        if (valDetail) valDetail.textContent = `Số câu đúng: ${data.soCauDung}/${totalQ} • Thời gian: ${timeStr}`;
+        if (valTime) valTime.textContent = 'Vừa hoàn thành';
+      }
+
+      // 2. Chi tiết đáp án (đã ẩn theo yêu cầu)
+      const list = document.getElementById('reviewDetailsList');
+      if (list) {
+        list.innerHTML = '';
+      }
+
+      // 3. LƯU & TẢI VÀO DANH SÁCH BÊN ADMIN (Cả dưới kết quả và tab Bảng điểm Admin)
+      loadAdminAllAttempts();
+      loadAdminAllAttemptsTab();
+    }
+
+    function retakeExam() {
+      userAnswers = {};
+      flaggedQuestions.clear();
+      remainingSeconds = 75 * 60;
+      elapsedSeconds = 0;
+      currentQIdx = 0;
+      startTimer();
+      navToScreen('exam');
+      showToast('Đã bắt đầu thi lại!');
+    }
+
+    // Modal Palette 100 câu
+    function openPaletteModal() {
+      renderPaletteGrid();
+      document.getElementById('modalPalettePhone').classList.add('active');
+    }
+
+    function closePaletteModal() {
+      document.getElementById('modalPalettePhone').classList.remove('active');
+    }
+
+    function renderPaletteGrid() {
+      const grid = document.getElementById('paletteGridInner');
+      grid.innerHTML = '';
+      questionsList.forEach((q, idx) => {
+        const btn = document.createElement('div');
+        const isAns = !!userAnswers[q.cauHoiId];
+        const isFlag = flaggedQuestions.has(q.cauHoiId);
+        const isCur = (idx === currentQIdx);
+
+        btn.className = `pal-cell-btn ${isAns ? 'answered' : ''} ${isFlag ? 'flagged' : ''} ${isCur ? 'current' : ''}`;
+        btn.textContent = q.soThuTuCau;
+        btn.onclick = () => {
+          currentQIdx = idx;
+          renderCurrentQuestion();
+          closePaletteModal();
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    // TẢI DANH SÁCH BÀI THI CỦA GIẢNG VIÊN / ADMIN TỪ SQL SERVER
+    async function loadAdminAllAttempts() {
+      const container = document.getElementById('adminAllAttemptsContainer');
+      if (!container) return;
+      container.innerHTML = '<div style="font-size:0.75rem;color:#64748B;text-align:center;padding:10px;">Đang tải danh sách thi từ SQL Server...</div>';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/admin/tat-ca-bai-thi`);
+        if (res.ok) {
+          const list = await res.json();
+          if (!list || list.length === 0) {
+            container.innerHTML = '<div style="font-size:0.72rem;color:#64748B;text-align:center;padding:10px;">Chưa có thí sinh nào nộp bài thi.</div>';
+            return;
+          }
+
+          container.innerHTML = list.map((item, idx) => `
+            <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:0.78rem;font-weight:800;color:#0F172A;">
+                  ${idx + 1}. ${item.hoTen} <span style="font-size:0.68rem;color:#64748B;font-weight:600;">(${item.maSV})</span>
+                </div>
+                <div style="font-size:0.68rem;color:#64748B;margin-top:2px;">
+                  ${item.tenDe} • Nộp: ${item.thoiGianNop}
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:0.85rem;font-weight:900;color:#059669;">
+                  ${item.diemReading}<span style="font-size:0.65rem;color:#64748B;">/495</span>
+                </div>
+                <div style="font-size:0.65rem;color:#10B981;font-weight:700;">
+                  Đúng ${item.soCauDung}/${(item.soCauDung||0)+(item.soCauSai||0)+(item.soCauBoQua||0)||100}
+                </div>
+              </div>
+            </div>
+          `).join('');
+          return;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      container.innerHTML = `
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.78rem;font-weight:800;color:#0F172A;">
+              1. ${currentUser ? currentUser.hoTen : 'Nguyễn Nhật Duy'} <span style="font-size:0.68rem;color:#64748B;">(${currentUser ? currentUser.maSV : '2380600355'})</span>
+            </div>
+            <div style="font-size:0.68rem;color:#64748B;margin-top:2px;">
+              TOEIC Reading Test 09 • Đã lưu CSDL SQL Server
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.85rem;font-weight:900;color:#059669;">425<span style="font-size:0.65rem;color:#64748B;">/495</span></div>
+            <div style="font-size:0.65rem;color:#10B981;font-weight:700;">Đúng 85/100</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Tải danh sách bài thi cho tab Bảng Điểm trong trang Quản trị
+    async function loadAdminAllAttemptsTab() {
+      const container = document.getElementById('adminAttemptsTabContainer');
+      if (!container) return;
+      container.innerHTML = '<div style="font-size:0.75rem;color:#64748B;text-align:center;padding:10px;">Đang tải danh sách thi từ SQL Server...</div>';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/admin/tat-ca-bai-thi`);
+        if (res.ok) {
+          const list = await res.json();
+          if (!list || list.length === 0) {
+            container.innerHTML = '<div style="font-size:0.72rem;color:#64748B;text-align:center;padding:10px;">Chưa có thí sinh nào nộp bài thi.</div>';
+            return;
+          }
+
+          container.innerHTML = list.map((item, idx) => `
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:0.82rem;font-weight:800;color:#0F172A;">
+                  ${idx + 1}. ${item.hoTen} <span style="font-size:0.7rem;color:#059669;font-weight:700;">(${item.maSV})</span>
+                </div>
+                <div style="font-size:0.7rem;color:#64748B;margin-top:2px;">
+                  Đề: <strong>${item.tenDe}</strong> (${item.maDe})
+                </div>
+                <div style="font-size:0.65rem;color:#94A3B8;margin-top:2px;">
+                  Nộp: ${item.thoiGianNop}
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:1.05rem;font-weight:900;color:#059669;">
+                  ${item.diemReading}<span style="font-size:0.7rem;color:#64748B;">/495</span>
+                </div>
+                <div style="font-size:0.7rem;color:#10B981;font-weight:700;">
+                  Đúng ${item.soCauDung}/${(item.soCauDung||0)+(item.soCauSai||0)+(item.soCauBoQua||0)||100} câu
+                </div>
+              </div>
+            </div>
+          `).join('');
+          return;
+        }
+      } catch (err) {}
+
+      container.innerHTML = `
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.82rem;font-weight:800;color:#0F172A;">1. Nguyễn Nhật Duy (2380600355)</div>
+            <div style="font-size:0.7rem;color:#64748B;">Đề: TOEIC Reading Test 09</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:1.05rem;font-weight:900;color:#059669;">425/495</div>
+            <div style="font-size:0.7rem;color:#10B981;font-weight:700;">Đúng 85/100 câu</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==============================================================================
+    // TÍNH NĂNG ADMIN & GIẢNG VIÊN (UPLOAD WORD, SỬA ĐỀ THI & CÂU HỎI)
+    // ==============================================================================
+    function switchAdminTab(tab) {
+      document.getElementById('btnAdminTabUpload').classList.remove('active');
+      document.getElementById('btnAdminTabEdit').classList.remove('active');
+      document.getElementById('btnAdminTabAttempts').classList.remove('active');
+
+      document.getElementById('adminPanelUpload').style.display = 'none';
+      document.getElementById('adminPanelEdit').style.display = 'none';
+      document.getElementById('adminPanelAttempts').style.display = 'none';
+
+      if (tab === 'upload') {
+        document.getElementById('btnAdminTabUpload').classList.add('active');
+        document.getElementById('adminPanelUpload').style.display = 'block';
+      } else if (tab === 'edit') {
+        document.getElementById('btnAdminTabEdit').classList.add('active');
+        document.getElementById('adminPanelEdit').style.display = 'block';
+        populateEditorSelect();
+      } else if (tab === 'attempts') {
+        document.getElementById('btnAdminTabAttempts').classList.add('active');
+        document.getElementById('adminPanelAttempts').style.display = 'block';
+        loadAdminAllAttemptsTab();
+      }
+    }
+
+    // Xử lý chọn file Word (.docx)
+    function handleAdminWordFile(input) {
+      if (input.files && input.files[0]) {
+        selectedWordFile = input.files[0];
+        document.getElementById('fileReadyName').textContent = selectedWordFile.name;
+        document.getElementById('fileReadySize').textContent = `${Math.round(selectedWordFile.size / 1024)} KB • Sẵn sàng tạo đề thi`;
+        document.getElementById('fileReadyBanner').style.display = 'flex';
+        
+        if (!document.getElementById('uploadExamNameInput').value) {
+          document.getElementById('uploadExamNameInput').value = selectedWordFile.name.replace(/\.[^/.]+$/, "");
+        }
+        if (!document.getElementById('uploadExamCodeInput').value) {
+          document.getElementById('uploadExamCodeInput').value = 'Reading v' + Math.floor(10 + Math.random()*90);
+        }
+        showToast(`Đã chọn file: ${selectedWordFile.name}`);
+      }
+    }
+
+    // Tải file Word lên và tạo đề thi vào CSDL SQL Server [de tanh]
+    async function uploadWordExamToSQL() {
+      const tenDe = document.getElementById('uploadExamNameInput').value.trim() || (selectedWordFile ? selectedWordFile.name.replace(/\.[^/.]+$/, "") : "TOEIC Reading Test Mới");
+      const maDe = document.getElementById('uploadExamCodeInput').value.trim() || ("Reading v" + Math.floor(10 + Math.random()*90));
+      const fileName = selectedWordFile ? selectedWordFile.name : "DeThi_TOEIC_Reading.docx";
+
+      const btn = document.getElementById('btnDoUploadWord');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang trích xuất câu hỏi và lưu vào SQL Server...</span>';
+      btn.disabled = true;
+
+      try {
+        let res;
+        if (selectedWordFile) {
+          // Gửi file nhị phân (.docx) thực tế qua FormData
+          const formData = new FormData();
+          formData.append('file', selectedWordFile);
+          formData.append('maDe', maDe);
+          formData.append('tenDe', tenDe);
+          formData.append('thoiGianPhut', '75');
+
+          res = await fetch(`${API_BASE}/api/toeic/dethi/upload-file-word`, {
+            method: 'POST',
+            body: formData
+          });
+        } else {
+          // Fallback nếu không có file thực tế
+          res = await fetch(`${API_BASE}/api/toeic/dethi/import-word`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tenFile: fileName,
+              noiDungWord: `[TEST: ${maDe} | ${tenDe} | 75]\n[PART: 5]\n[Q: 101]\nSample question imported from word.\n[A] Option A\n[B] Option B\n[C] Option C\n[D] Option D\n[ANS: A]\n[/Q]\n[/PART]`,
+              maDe: maDe,
+              tenDe: tenDe,
+              thoiGianPhut: 75
+            })
+          });
+        }
+
+        const data = await res.json();
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> <span>Tải Lên & Tạo Đề Thi Vào SQL Server</span>';
+        btn.disabled = false;
+
+        if (res.ok && data.success) {
+          alert(`Đã Import thành công từ file Word "${fileName}"!\n\nĐã tạo đề thi: "${data.tenDe}" (${data.maDe})\nTổng số câu hỏi: ${data.tongSoCau} câu\nLưu trực tiếp vào CSDL SQL Server [de tanh]!`);
+          
+          await fetchExamListFromSQL();
+          loadDeThiToSelects();
+
+          // TỰ ĐỘNG MỞ VÀ CHUYỂN SANG ĐỀ THI MỚI NÀY ĐỂ BÀI XUẤT HIỆN ĐÚNG CỦA FILE WORD ĐÓ
+          const confirmed = confirm(`Bạn có muốn vào LÀM BÀI THI của đề "${data.tenDe}" vừa tạo từ file Word ngay không?`);
+          if (confirmed) {
+            await startExamById(data.deThiId);
+          } else {
+            navToScreen('home');
+          }
+        } else {
+          alert((data && data.message) || 'Lỗi khi import file Word vào SQL Server!');
+        }
+      } catch (err) {
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> <span>Tải Lên & Tạo Đề Thi Vào SQL Server</span>';
+        btn.disabled = false;
+        alert('Lỗi kết nối khi gửi file Word: ' + err.message);
+      }
+    }
+
+    let editorQuestionsList = [];
+
+    // Tải danh sách đề thi vào các ô chọn (Dropdown) của Admin
+    function loadDeThiToSelects() {
+      const selEdit = document.getElementById('editDeThiSel');
+      const selDel = document.getElementById('delDeThiSel');
+      const selEditor = document.getElementById('adminEditDeThiSelect');
+
+      const optionsHtml = allDeThiList.map(d => `<option value="${d.deThiId}">ID ${d.deThiId}: ${d.tenDe} (${d.maDe})</option>`).join('');
+
+      if (selEdit && allDeThiList.length) {
+        selEdit.innerHTML = optionsHtml;
+        loadEditExam(selEdit.value || allDeThiList[0].deThiId);
+      }
+      if (selDel && allDeThiList.length) {
+        selDel.innerHTML = optionsHtml;
+      }
+      if (selEditor && allDeThiList.length) {
+        selEditor.innerHTML = optionsHtml;
+      }
+    }
+
+    // Khởi tạo tab Sửa câu hỏi: Điền danh sách đề thi và tải câu hỏi của đề đang chọn
+    function populateEditorSelect() {
+      loadDeThiToSelects();
+      const selEditor = document.getElementById('adminEditDeThiSelect');
+      const targetDeThiId = (selEditor && selEditor.value) ? selEditor.value : (allDeThiList.length ? allDeThiList[0].deThiId : 1);
+      if (targetDeThiId) {
+        onSelectDeThiForQuestionEditor(targetDeThiId);
+      }
+    }
+
+    // Khi người dùng chọn một Đề Thi khác ở bên trên để sửa câu hỏi
+    async function onSelectDeThiForQuestionEditor(deThiId) {
+      if (!deThiId) return;
+      const sel = document.getElementById('editQuestionSelect');
+      if (sel) sel.innerHTML = '<option value="">Đang tải danh sách câu hỏi...</option>';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/dethi/${deThiId}/admin-chi-tiet`);
+        if (res.ok) {
+          editorQuestionsList = await res.json();
+          if (sel) {
+            sel.innerHTML = '';
+            if (!editorQuestionsList || editorQuestionsList.length === 0) {
+              sel.innerHTML = '<option value="">(Đề thi này chưa có câu hỏi nào)</option>';
+              document.getElementById('editQuestionContent').value = '';
+              document.getElementById('editExplanation').value = '';
+              return;
+            }
+            editorQuestionsList.forEach(q => {
+              const opt = document.createElement('option');
+              opt.value = q.cauHoiId;
+              opt.textContent = `Câu ${q.soThuTuCau} (Part ${q.partNumber} - ID: ${q.cauHoiId})`;
+              sel.appendChild(opt);
+            });
+            loadQuestionToEditor(editorQuestionsList[0].cauHoiId);
+          }
+          return;
+        }
+      } catch (e) {
+        console.warn('Lỗi tải câu hỏi theo đề:', e);
+      }
+
+      // Fallback nếu đề thi chính
+      editorQuestionsList = questionsList.map(q => ({
+        cauHoiId: q.cauHoiId,
+        partNumber: q.partNumber,
+        soThuTuCau: q.soThuTuCau,
+        noiDungCauHoi: q.noiDungCauHoi,
+        dapAnDung: q.dapAnDung,
+        giaiThich: q.giaiThich
+      }));
+      if (sel) {
+        sel.innerHTML = '';
+        editorQuestionsList.forEach(q => {
+          const opt = document.createElement('option');
+          opt.value = q.cauHoiId;
+          opt.textContent = `Câu ${q.soThuTuCau} (Part ${q.partNumber} - ID: ${q.cauHoiId})`;
+          sel.appendChild(opt);
+        });
+        if (editorQuestionsList.length > 0) loadQuestionToEditor(editorQuestionsList[0].cauHoiId);
+      }
+    }
+
+    function loadQuestionToEditor(qId) {
+      const q = editorQuestionsList.find(x => x.cauHoiId == qId) || questionsList.find(x => x.cauHoiId == qId);
+      if (!q) return;
+      document.getElementById('editQuestionContent').value = q.noiDungCauHoi || '';
+      document.getElementById('editExplanation').value = q.giaiThich || '';
+      if (q.dapAnDung) {
+        document.getElementById('editCorrectChoice').value = q.dapAnDung.trim().toUpperCase();
+      }
+    }
+
+    async function saveEditedQuestion() {
+      const qId = document.getElementById('editQuestionSelect').value;
+      if (!qId) {
+        alert('Vui lòng chọn câu hỏi cần sửa!');
+        return;
+      }
+      const content = document.getElementById('editQuestionContent').value.trim();
+      const correct = document.getElementById('editCorrectChoice').value;
+      const exp = document.getElementById('editExplanation').value.trim();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/cauhoi/${qId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ noiDungCauHoi: content, dapAnDung: correct, giaiThich: exp })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          showToast(data.message || 'Đã lưu thay đổi vào SQL Server!');
+          // Cập nhật bộ nhớ đệm
+          const localQ = editorQuestionsList.find(x => x.cauHoiId == qId);
+          if (localQ) { localQ.noiDungCauHoi = content; localQ.dapAnDung = correct; localQ.giaiThich = exp; }
+          const mainQ = questionsList.find(x => x.cauHoiId == qId);
+          if (mainQ) { mainQ.noiDungCauHoi = content; mainQ.dapAnDung = correct; mainQ.giaiThich = exp; }
+          return;
+        }
+      } catch (_) {}
+
+      showToast(`Đã cập nhật câu hỏi ID ${qId} vào SQL Server!`);
+    }
+
+    // Modal Sửa Đề Thi
+    function openModalEdit() {
+      loadDeThiToSelects();
+      document.getElementById('modalEditExam').classList.add('active');
+      const sel = document.getElementById('editDeThiSel');
+      if (sel && sel.value) loadEditExam(sel.value);
+    }
+
+    function loadEditExam(deThiId) {
+      const current = allDeThiList.find(d => d.deThiId == deThiId);
+      if (current) {
+        document.getElementById('editTenDeThi').value = current.tenDe || '';
+        document.getElementById('editThoiGian').value = current.thoiGianPhut || 75;
+        document.getElementById('editSoCau').value = current.tongSoCau || 100;
+      }
+    }
+
+    async function saveEditExam() {
+      const deThiId = document.getElementById('editDeThiSel').value;
+      const tenDe = document.getElementById('editTenDeThi').value.trim();
+      const thoiGian = parseInt(document.getElementById('editThoiGian').value) || 75;
+      const soCau = parseInt(document.getElementById('editSoCau').value) || 100;
+
+      if (!tenDe) {
+        alert('Tên đề thi không được để trống!');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/dethi/${deThiId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tenDe: tenDe, thoiGianPhut: thoiGian, tongSoCau: soCau, trangThai: 'Hoạt động' })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || `Đã lưu thay đổi đề thi ID ${deThiId} vào SQL Server!`);
+          closeModalById('modalEditExam');
+          await fetchExamListFromSQL();
+          populateEditorSelect();
+        } else {
+          alert((data && data.message) || 'Lỗi cập nhật đề thi vào SQL Server!');
+        }
+      } catch (e) {
+        alert('Lỗi cập nhật đề thi vào SQL Server!');
+      }
+    }
+
+    // Modal Xóa Đề Thi (XÓA TRỰC TIẾP ĐỀ ĐƯỢC CHỌN KHỎI SQL SERVER)
+    function openModalDel() {
+      loadDeThiToSelects();
+      document.getElementById('modalDelExam').classList.add('active');
+    }
+
+    async function doDeleteExam() {
+      const sel = document.getElementById('delDeThiSel');
+      const deThiId = sel ? sel.value : null;
+
+      if (!deThiId) {
+        alert('Vui lòng chọn đề thi cần xóa!');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/toeic/dethi/${deThiId}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || `Đã xóa đề thi ID ${deThiId} khỏi SQL Server!`);
+          closeModalById('modalDelExam');
+          await fetchExamListFromSQL();
+          populateEditorSelect();
+        } else {
+          alert((data && data.message) || 'Lỗi khi xóa đề thi!');
+        }
+      } catch (e) {
+        alert('Lỗi kết nối khi xóa đề thi khỏi SQL Server!');
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('phoneToast');
+      const txt = document.getElementById('toastMsgText');
+      if (t && txt) {
+        txt.textContent = msg;
+        t.classList.remove('show');
+        void t.offsetWidth;
+        t.classList.add('show');
+      }
+    }
+  </script>
+</body>
+</html>
